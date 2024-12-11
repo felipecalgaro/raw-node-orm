@@ -53,6 +53,30 @@ describe("table business logic", () => {
       "SELECT name, age FROM users WHERE id = 1 AND name = john"
     );
   });
+
+  test("generates correct query with SELECT, WHERE and ORDER BY", () => {
+    const query = users.find({
+      select: { name: true, age: true, id: false },
+      where: { id: "1", name: "john" },
+      orderBy: {
+        name: "ASC",
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      "SELECT name, age FROM users WHERE id = 1 AND name = john ORDER BY name ASC"
+    );
+  });
+
+  test("generates correct query with LIMIT and OFFSET", () => {
+    const query = users.find({
+      limit: 10,
+      offset: 2,
+    });
+
+    assert(query, "SELECT * FROM users LIMIT 10 OFFSET 2");
+  });
 });
 
 describe("database", async () => {
