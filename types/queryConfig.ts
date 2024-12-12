@@ -1,25 +1,19 @@
-export type Where<
-  Table extends Record<string, string> = Record<string, string>
-> = {
-  [k in keyof Table]?: string;
+type Where<Table extends Record<string, unknown>> = {
+  [k in keyof Table]?: Table[k];
 };
 
-export type Select<
-  Table extends Record<string, string> = Record<string, string>
-> = {
+type Select<Table extends Record<string, unknown>> = {
   [k in keyof Table]?: boolean;
 };
 
-export type OrderBy<
-  Table extends Record<string, string> = Record<string, string>
-> = {
+type OrderBy<Table extends Record<string, unknown>> = {
   [k in keyof Table]?: "ASC" | "DESC";
 };
 
-export type QueryConfig = {
-  select?: Select;
-  where?: Where;
-  orderBy?: OrderBy;
+export type QueryConfig<T extends Record<string, unknown>> = {
+  select?: Select<T>;
+  where?: Where<T>;
+  orderBy?: OrderBy<T>;
   limit?: number;
   offset?: number;
 };

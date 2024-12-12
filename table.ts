@@ -1,9 +1,9 @@
-import { OrderBy, QueryConfig, Select, Where } from "./types/queryConfig";
+import { QueryConfig } from "./types/queryConfig";
 
-export class Table {
-  constructor(private tableName: string) {}
-
-  private _generateSelectClause(select: Select | undefined) {
+class SQLWriter {
+  static generateSelectClause<SelectOptions extends Record<string, unknown>>(
+    select: SelectOptions | undefined
+  ) {
     if (!select || Object.keys(select).length === 0) return "SELECT *";
 
     let selectString = "SELECT ";
@@ -17,7 +17,9 @@ export class Table {
     return selectString;
   }
 
-  private _generateWhereClause(where: Where | undefined) {
+  static generateWhereClause<WhereOptions extends Record<string, unknown>>(
+    where: WhereOptions | undefined
+  ) {
     if (!where || Object.keys(where).length === 0) return "";
 
     let whereString = "WHERE ";
@@ -31,7 +33,9 @@ export class Table {
     return whereString;
   }
 
-  private _generateOrderByClause(orderBy: OrderBy | undefined) {
+  static generateOrderByClause<OrderByOptions extends Record<string, unknown>>(
+    orderBy: OrderByOptions | undefined
+  ) {
     if (!orderBy || Object.keys(orderBy).length === 0) return "";
 
     let orderByString = "ORDER BY ";
@@ -45,24 +49,30 @@ export class Table {
     return orderByString;
   }
 
-  private _generateLimitClause(limit: number | undefined) {
+  static generateLimitClause(limit: number | undefined) {
     if (!limit) return "";
 
     return `LIMIT ${limit}`;
   }
 
-  private _generateOffsetClause(offset: number | undefined) {
+  static generateOffsetClause(offset: number | undefined) {
     if (!offset) return "";
 
     return `OFFSET ${offset}`;
   }
+}
 
-  public find(queryConfig?: QueryConfig) {
-    const selectClause = this._generateSelectClause(queryConfig?.select);
-    const whereClause = this._generateWhereClause(queryConfig?.where);
-    const orderByClause = this._generateOrderByClause(queryConfig?.orderBy);
-    const limitClause = this._generateLimitClause(queryConfig?.limit);
-    const offsetClause = this._generateOffsetClause(queryConfig?.offset);
+export class Table<
+  T extends Record<string, unknown> = Record<string, unknown>
+> {
+  constructor(private tableName: string) {}
+
+  public find(queryConfig?: QueryConfig<T>) {
+    const selectClause = SQLWriter.generateSelectClause(queryConfig?.select);
+    const whereClause = SQLWriter.generateWhereClause(queryConfig?.where);
+    const orderByClause = SQLWriter.generateOrderByClause(queryConfig?.orderBy);
+    const limitClause = SQLWriter.generateLimitClause(queryConfig?.limit);
+    const offsetClause = SQLWriter.generateOffsetClause(queryConfig?.offset);
 
     return `${selectClause} FROM ${this.tableName} ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim();
   }
