@@ -10,10 +10,23 @@ type OrderBy<Table extends Record<string, unknown>> = {
   [k in keyof Table]?: "ASC" | "DESC";
 };
 
-export type QueryConfig<T extends Record<string, unknown>> = {
+export type FindConfig<T extends Record<string, unknown>> = {
   select?: Select<T>;
   where?: Where<T>;
   orderBy?: OrderBy<T>;
   limit?: number;
   offset?: number;
+};
+
+export type CreateConfig<T extends Record<string, unknown>> = {
+  data: T;
+};
+
+export type UpdateConfig<T extends Record<string, unknown>> = {
+  data: Partial<T>;
+  where?: Where<T>;
+};
+
+export type DeleteConfig<T extends Record<string, unknown>> = {
+  where?: Where<T>;
 };

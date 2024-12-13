@@ -77,6 +77,51 @@ describe("table business logic", () => {
 
     assert(query, "SELECT * FROM users LIMIT 10 OFFSET 2");
   });
+
+  test("generates correct query with INSERT", () => {
+    const query = users.create({
+      data: {
+        name: "john",
+        age: 20,
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      "INSERT INTO users (name, age) VALUES (john, 20)"
+    );
+  });
+
+  test("generates correct query with UPDATE", () => {
+    const query = users.update({
+      data: {
+        name: "john",
+        age: 24,
+      },
+      where: {
+        id: 10,
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      "UPDATE users SET name = john, age = 24 WHERE id = 10"
+    );
+  });
+
+  test("generates correct query with DELETE", () => {
+    const query = users.delete({
+      where: {
+        name: "john",
+        age: 24,
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      "DELETE FROM users WHERE name = john AND age = 24"
+    );
+  });
 });
 
 describe("database", async () => {
