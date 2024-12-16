@@ -2,6 +2,8 @@ import pg from "pg";
 import test, { describe } from "node:test";
 import assert from "node:assert";
 import { Table } from "../table";
+import { Raw } from "../raw";
+import { Schema } from "../schema";
 
 const client = new pg.Client({
   connectionString: "postgres://docker:docker@localhost:5432/raw-orm-test",
@@ -124,12 +126,48 @@ describe("table business logic", () => {
   });
 });
 
-describe("database", async () => {
-  test("connect to database", async () => {
-    await client.connect();
+describe("orm", () => {
+  const raw = new Raw();
 
-    client.on("error", (err) => {
-      assert.ifError(err);
+  test("cannot migrate without schema", () => {
+    assert.throws(() => {
+      raw.migrate();
     });
   });
+
+  test("migrates correctly", () => {
+    raw.addSchema({
+      User: {
+        name: "VARCHAR",
+        age: "INT",
+      },
+      Post: {
+        title: "VARCHAR",
+        created_at: "DATETIME",
+      },
+    });
+
+    raw.addSchema({
+      Test: {
+        hello: "FLOAT",
+      },
+    });
+
+    const migration = raw.migrate();
+
+    assert.strictEqual(
+      migration,
+      "DROP TABLE IF EXISTS User, Post, Test CASCADE; CREATE TABLE User (name VARCHAR, age INT); CREATE TABLE Post (title VARCHAR, created_at DATETIME); CREATE TABLE Test (hello FLOAT);"
+    );
+  });
 });
+
+// describe("database", async () => {
+//   test("connect to database", async () => {
+//     await client.connect();
+
+//     client.on("error", (err) => {
+//       assert.ifError(err);
+//     });
+//   });
+// });

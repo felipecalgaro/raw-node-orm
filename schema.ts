@@ -1,7 +1,22 @@
 import fs from "node:fs";
 import { RawSchema } from "./raw";
+import { DatabaseTypes, TYPES_MAPPER } from "./mapper";
 
-export class SchemaGenerator {
+type FieldOptions =
+  | {
+      defaultValue?: string | number | Date;
+      type: DatabaseTypes;
+      foreignKey: true;
+      reference: `${string}.${string}`;
+    }
+  | {
+      primaryKey?: boolean;
+      defaultValue?: string | number | Date;
+      type: DatabaseTypes;
+      foreignKey?: false;
+    };
+
+export class Schema {
   static generate(schema: RawSchema) {
     const stream = fs.createWriteStream("generated/schema.ts");
     stream.once("open", () => {
@@ -11,8 +26,8 @@ export class SchemaGenerator {
             1
           )}Schema`} = {\n`
         );
-        Object.entries(columns).forEach(([field, value]) => {
-          stream.write(`  ${field}: ${value}\n`);
+        Object.entries(columns).forEach(([field, type]) => {
+          stream.write(`  ${field}: ${TYPES_MAPPER[type]}\n`);
         });
         stream.write("}\n");
         if (index < array.length - 1) stream.write("\n");
