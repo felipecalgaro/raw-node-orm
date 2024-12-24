@@ -15,7 +15,7 @@ describe("table business logic", () => {
   test("generates correct query without any config", () => {
     const query = users.find();
 
-    assert.strictEqual(query, "SELECT * FROM users");
+    assert.strictEqual(query, 'SELECT * FROM "users"');
   });
 
   test("generates correct query with SELECT", () => {
@@ -27,7 +27,7 @@ describe("table business logic", () => {
       },
     });
 
-    assert.strictEqual(query, "SELECT id, name FROM users");
+    assert.strictEqual(query, 'SELECT "id", "name" FROM "users"');
   });
 
   test("generates correct query with WHERE", () => {
@@ -40,7 +40,7 @@ describe("table business logic", () => {
 
     assert.strictEqual(
       query,
-      "SELECT * FROM users WHERE id = 1 AND name = john"
+      'SELECT * FROM "users" WHERE "id" = 1 AND "name" = john'
     );
   });
 
@@ -52,7 +52,7 @@ describe("table business logic", () => {
 
     assert.strictEqual(
       query,
-      "SELECT name, age FROM users WHERE id = 1 AND name = john"
+      'SELECT "name", "age" FROM "users" WHERE "id" = 1 AND "name" = john'
     );
   });
 
@@ -67,7 +67,7 @@ describe("table business logic", () => {
 
     assert.strictEqual(
       query,
-      "SELECT name, age FROM users WHERE id = 1 AND name = john ORDER BY name ASC"
+      'SELECT "name", "age" FROM "users" WHERE "id" = 1 AND "name" = john ORDER BY "name" ASC'
     );
   });
 
@@ -77,7 +77,7 @@ describe("table business logic", () => {
       offset: 2,
     });
 
-    assert(query, "SELECT * FROM users LIMIT 10 OFFSET 2");
+    assert(query, 'SELECT * FROM "users" LIMIT 10 OFFSET 2');
   });
 
   test("generates correct query with INSERT", () => {
@@ -90,7 +90,7 @@ describe("table business logic", () => {
 
     assert.strictEqual(
       query,
-      "INSERT INTO users (name, age) VALUES (john, 20)"
+      'INSERT INTO "users" ("name", "age") VALUES (john, 20)'
     );
   });
 
@@ -107,7 +107,7 @@ describe("table business logic", () => {
 
     assert.strictEqual(
       query,
-      "UPDATE users SET name = john, age = 24 WHERE id = 10"
+      'UPDATE "users" SET "name" = john, "age" = 24 WHERE "id" = 10'
     );
   });
 
@@ -121,7 +121,7 @@ describe("table business logic", () => {
 
     assert.strictEqual(
       query,
-      "DELETE FROM users WHERE name = john AND age = 24"
+      'DELETE FROM "users" WHERE "name" = john AND "age" = 24'
     );
   });
 });
@@ -143,7 +143,7 @@ describe("orm", () => {
       },
       Post: {
         title: "VARCHAR",
-        created_at: "DATETIME",
+        created_at: "TIMESTAMP",
       },
     });
 
@@ -157,17 +157,17 @@ describe("orm", () => {
 
     assert.strictEqual(
       migration,
-      "DROP TABLE IF EXISTS User, Post, Test CASCADE; CREATE TABLE User (name VARCHAR, age INT); CREATE TABLE Post (title VARCHAR, created_at DATETIME); CREATE TABLE Test (hello FLOAT);"
+      'DROP TABLE IF EXISTS "User", "Post", "Test" CASCADE; CREATE TABLE "User" ("name" VARCHAR, "age" INT); CREATE TABLE "Post" ("title" VARCHAR, "created_at" TIMESTAMP); CREATE TABLE "Test" ("hello" FLOAT);'
     );
   });
 });
 
-// describe("database", async () => {
-//   test("connect to database", async () => {
-//     await client.connect();
+describe("database", async () => {
+  test("connect to database", async () => {
+    await client.connect();
 
-//     client.on("error", (err) => {
-//       assert.ifError(err);
-//     });
-//   });
-// });
+    client.on("error", (err) => {
+      assert.ifError(err);
+    });
+  });
+});

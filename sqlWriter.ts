@@ -9,7 +9,7 @@ export class SQLWriter {
     let selectString = "SELECT ";
 
     Object.entries(select).forEach(([field, value], index, array) => {
-      selectString += `${value ? `${field}` : ""}${
+      selectString += `${value ? `"${field}"` : ""}${
         array[index + 1]?.[1] ? ", " : ""
       }`;
     });
@@ -25,7 +25,7 @@ export class SQLWriter {
     let whereString = "WHERE ";
 
     Object.entries(where).forEach(([field, value], index, array) => {
-      whereString += `${field} = ${value}${
+      whereString += `"${field}" = ${value}${
         index < array.length - 1 ? " AND " : ""
       }`;
     });
@@ -41,7 +41,7 @@ export class SQLWriter {
     let orderByString = "ORDER BY ";
 
     Object.entries(orderBy).forEach(([field, value], index, array) => {
-      orderByString += `${field} ${value}${
+      orderByString += `"${field}" ${value}${
         index < array.length - 1 ? ", " : ""
       }`;
     });
@@ -69,7 +69,7 @@ export class SQLWriter {
     let insertString = "(";
 
     Object.keys(data).forEach((field, index, array) => {
-      insertString += `${field}${
+      insertString += `"${field}"${
         index < array.length - 1 ? ", " : ") VALUES ("
       }`;
     });
@@ -85,7 +85,9 @@ export class SQLWriter {
     let setString = "SET ";
 
     Object.entries(data).forEach(([field, value], index, array) => {
-      setString += `${field} = ${value}${index < array.length - 1 ? ", " : ""}`;
+      setString += `"${field}" = ${value}${
+        index < array.length - 1 ? ", " : ""
+      }`;
     });
 
     return setString;
@@ -95,10 +97,10 @@ export class SQLWriter {
     let createTableString = "";
 
     Object.entries(schema).forEach(([tableName, columns]) => {
-      createTableString += `CREATE TABLE ${tableName} (`;
+      createTableString += `CREATE TABLE "${tableName}" (`;
 
-      Object.entries(columns).forEach(([field, type], index, array) => {
-        createTableString += `${field} ${type}${
+      Object.entries(columns).forEach(([field, value], index, array) => {
+        createTableString += `"${field}" ${value}${
           index < array.length - 1 ? ", " : ""
         }`;
       });
@@ -113,7 +115,7 @@ export class SQLWriter {
     let dropTableString = "DROP TABLE IF EXISTS ";
 
     tables.forEach((table, index, array) => {
-      dropTableString += `${table}${index < array.length - 1 ? ", " : ""}`;
+      dropTableString += `"${table}"${index < array.length - 1 ? ", " : ""}`;
     });
 
     dropTableString += " CASCADE;";
