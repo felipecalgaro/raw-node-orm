@@ -18,25 +18,25 @@ export class Table<
     const limitClause = SQLWriter.generateLimitClause(findConfig?.limit);
     const offsetClause = SQLWriter.generateOffsetClause(findConfig?.offset);
 
-    return `${selectClause} FROM ${this.tableName} ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim();
+    return `${selectClause} FROM "${this.tableName}" ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim();
   }
 
   public create(createConfig: CreateConfig<T>) {
     const insertClause = SQLWriter.generateInsertClause(createConfig.data);
 
-    return `INSERT INTO ${this.tableName} ${insertClause}`.trim();
+    return `INSERT INTO "${this.tableName}" ${insertClause}`.trim();
   }
 
   public update(updateConfig: UpdateConfig<T>) {
     const setClause = SQLWriter.generateSetClause(updateConfig.data);
     const whereClause = SQLWriter.generateWhereClause(updateConfig.where);
 
-    return `UPDATE ${this.tableName} ${setClause} ${whereClause}`.trim();
+    return `UPDATE "${this.tableName}" ${setClause} ${whereClause}`.trim();
   }
 
   public delete(deleteConfig: DeleteConfig<T>) {
     const whereClause = SQLWriter.generateWhereClause(deleteConfig.where);
 
-    return `DELETE FROM ${this.tableName} ${whereClause}`.trim();
+    return `DELETE FROM "${this.tableName}" ${whereClause}`.trim();
   }
 }

@@ -1,8 +1,9 @@
 import { RawSchema } from "./raw";
+import { OrderBy, Select, Where } from "./types/queryConfig";
 
 export class SQLWriter {
-  static generateSelectClause<SelectOptions extends Record<string, unknown>>(
-    select: SelectOptions | undefined
+  static generateSelectClause(
+    select: Select<Record<string, unknown>> | undefined
   ) {
     if (!select || Object.keys(select).length === 0) return "SELECT *";
 
@@ -17,15 +18,15 @@ export class SQLWriter {
     return selectString;
   }
 
-  static generateWhereClause<WhereOptions extends Record<string, unknown>>(
-    where: WhereOptions | undefined
+  static generateWhereClause(
+    where: Where<Record<string, unknown>> | undefined
   ) {
     if (!where || Object.keys(where).length === 0) return "";
 
     let whereString = "WHERE ";
 
     Object.entries(where).forEach(([field, value], index, array) => {
-      whereString += `"${field}" = ${value}${
+      whereString += `"${field}" = '${value}'${
         index < array.length - 1 ? " AND " : ""
       }`;
     });
@@ -33,8 +34,8 @@ export class SQLWriter {
     return whereString;
   }
 
-  static generateOrderByClause<OrderByOptions extends Record<string, unknown>>(
-    orderBy: OrderByOptions | undefined
+  static generateOrderByClause(
+    orderBy: OrderBy<Record<string, unknown>> | undefined
   ) {
     if (!orderBy || Object.keys(orderBy).length === 0) return "";
 
@@ -61,9 +62,7 @@ export class SQLWriter {
     return `OFFSET ${offset}`;
   }
 
-  static generateInsertClause<Data extends Record<string, unknown>>(
-    data: Data
-  ) {
+  static generateInsertClause(data: Record<string, unknown>) {
     if (Object.keys(data).length === 0) return "";
 
     let insertString = "(";
@@ -75,17 +74,17 @@ export class SQLWriter {
     });
 
     Object.values(data).forEach((value, index, array) => {
-      insertString += `${value}${index < array.length - 1 ? ", " : ")"}`;
+      insertString += `'${value}'${index < array.length - 1 ? ", " : ")"}`;
     });
 
     return insertString;
   }
 
-  static generateSetClause<Data extends Record<string, unknown>>(data: Data) {
+  static generateSetClause(data: Record<string, unknown>) {
     let setString = "SET ";
 
     Object.entries(data).forEach(([field, value], index, array) => {
-      setString += `"${field}" = ${value}${
+      setString += `"${field}" = '${value}'${
         index < array.length - 1 ? ", " : ""
       }`;
     });
