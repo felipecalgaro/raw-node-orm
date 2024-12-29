@@ -1,7 +1,6 @@
-import { RawSchema } from "./raw";
 import { OrderBy, Select, Where } from "./types/queryConfig";
 
-export class SQLWriter {
+export class SQLQueryWriter {
   static generateSelectClause(
     select: Select<Record<string, unknown>> | undefined
   ) {
@@ -90,35 +89,5 @@ export class SQLWriter {
     });
 
     return setString;
-  }
-
-  static generateCreateTableClause(schema: RawSchema) {
-    let createTableString = "";
-
-    Object.entries(schema).forEach(([tableName, columns]) => {
-      createTableString += `CREATE TABLE "${tableName}" (`;
-
-      Object.entries(columns).forEach(([field, value], index, array) => {
-        createTableString += `"${field}" ${value}${
-          index < array.length - 1 ? ", " : ""
-        }`;
-      });
-
-      createTableString += "); ";
-    });
-
-    return createTableString;
-  }
-
-  static generateDropTableClause(tables: string[]) {
-    let dropTableString = "DROP TABLE IF EXISTS ";
-
-    tables.forEach((table, index, array) => {
-      dropTableString += `"${table}"${index < array.length - 1 ? ", " : ""}`;
-    });
-
-    dropTableString += " CASCADE;";
-
-    return dropTableString;
   }
 }

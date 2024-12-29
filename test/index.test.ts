@@ -4,12 +4,13 @@ import assert from "node:assert";
 import { Table } from "../table";
 import { Raw } from "../raw";
 import { Schema } from "../schema";
+import { SQLMigrationWriter } from "../sql-migration-writer";
 
 const client = new pg.Client({
   connectionString: "postgres://docker:docker@localhost:5432/raw-orm-test",
 });
 
-describe("table business logic", () => {
+describe("queries", () => {
   const users = new Table("users");
 
   test("generates correct query without any config", () => {
@@ -126,7 +127,7 @@ describe("table business logic", () => {
   });
 });
 
-describe("orm", () => {
+describe("migrations", () => {
   const raw = new Raw();
 
   test("cannot migrate without schema", () => {
@@ -135,8 +136,10 @@ describe("orm", () => {
     });
   });
 
-  test("migrates correctly", () => {
-    raw.addSchema({
+  test("create tables correctly", () => {
+    const schema = new Schema();
+
+    schema.add({
       User: {
         name: "VARCHAR",
         age: "INT",
@@ -147,17 +150,15 @@ describe("orm", () => {
       },
     });
 
-    raw.addSchema({
+    schema.add({
       Test: {
         hello: "FLOAT",
       },
     });
 
-    const migration = raw.migrate();
-
     assert.strictEqual(
-      migration,
-      `DROP TABLE IF EXISTS "User", "Post", "Test" CASCADE; CREATE TABLE "User" ("name" VARCHAR, "age" INT); CREATE TABLE "Post" ("title" VARCHAR, "created_at" TIMESTAMP); CREATE TABLE "Test" ("hello" FLOAT);`
+      SQLMigrationWriter.generateCreateTableClause(schema.get()).trim(),
+      `CREATE TABLE "User" ("name" VARCHAR, "age" INT); CREATE TABLE "Post" ("title" VARCHAR, "created_at" TIMESTAMP); CREATE TABLE "Test" ("hello" FLOAT);`
     );
   });
 });
