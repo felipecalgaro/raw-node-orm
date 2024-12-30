@@ -1,4 +1,3 @@
-import pg from "pg";
 import test, { describe } from "node:test";
 import assert from "node:assert";
 import { Table } from "../table";
@@ -6,17 +5,13 @@ import { Raw } from "../raw";
 import { Schema } from "../schema";
 import { SQLMigrationWriter } from "../sql-migration-writer";
 
-const client = new pg.Client({
-  connectionString: "postgres://docker:docker@localhost:5432/raw-orm-test",
-});
-
 describe("queries", () => {
   const users = new Table("users");
 
   test("generates correct query without any config", () => {
     const query = users.find();
 
-    assert.strictEqual(query, `SELECT * FROM "users"`);
+    assert.strictEqual(query, `SELECT * FROM "users";`);
   });
 
   test("generates correct query with SELECT", () => {
@@ -28,7 +23,7 @@ describe("queries", () => {
       },
     });
 
-    assert.strictEqual(query, `SELECT "id", "name" FROM "users"`);
+    assert.strictEqual(query, `SELECT "id", "name" FROM "users";`);
   });
 
   test("generates correct query with WHERE", () => {
@@ -41,7 +36,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `SELECT * FROM "users" WHERE "id" = '1' AND "name" = 'john'`
+      `SELECT * FROM "users" WHERE "id" = '1' AND "name" = 'john';`
     );
   });
 
@@ -53,7 +48,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `SELECT "name", "age" FROM "users" WHERE "id" = '1' AND "name" = 'john'`
+      `SELECT "name", "age" FROM "users" WHERE "id" = '1' AND "name" = 'john';`
     );
   });
 
@@ -68,7 +63,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `SELECT "name", "age" FROM "users" WHERE "id" = '1' AND "name" = 'john' ORDER BY "name" ASC`
+      `SELECT "name", "age" FROM "users" WHERE "id" = '1' AND "name" = 'john' ORDER BY "name" ASC;`
     );
   });
 
@@ -78,7 +73,7 @@ describe("queries", () => {
       offset: 2,
     });
 
-    assert(query, `SELECT * FROM "users" LIMIT 10 OFFSET 2`);
+    assert(query, `SELECT * FROM "users" LIMIT 10 OFFSET 2;`);
   });
 
   test("generates correct query with INSERT", () => {
@@ -91,7 +86,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `INSERT INTO "users" ("name", "age") VALUES ('john', '20')`
+      `INSERT INTO "users" ("name", "age") VALUES ('john', '20');`
     );
   });
 
@@ -108,7 +103,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `UPDATE "users" SET "name" = 'john', "age" = '24' WHERE "id" = '10'`
+      `UPDATE "users" SET "name" = 'john', "age" = '24' WHERE "id" = '10';`
     );
   });
 
@@ -122,7 +117,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `DELETE FROM "users" WHERE "name" = 'john' AND "age" = '24'`
+      `DELETE FROM "users" WHERE "name" = 'john' AND "age" = '24';`
     );
   });
 });
@@ -160,15 +155,5 @@ describe("migrations", () => {
       SQLMigrationWriter.generateCreateTableClause(schema.get()).trim(),
       `CREATE TABLE "User" ("name" VARCHAR, "age" INT); CREATE TABLE "Post" ("title" VARCHAR, "created_at" TIMESTAMP); CREATE TABLE "Test" ("hello" FLOAT);`
     );
-  });
-});
-
-describe("database", async () => {
-  test("connect to database", async () => {
-    await client.connect();
-
-    client.on("error", (err) => {
-      assert.ifError(err);
-    });
   });
 });

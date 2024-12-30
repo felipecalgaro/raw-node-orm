@@ -24,25 +24,30 @@ export class Table<
       findConfig?.offset
     );
 
-    return `${selectClause} FROM "${this.tableName}" ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim();
+    return (
+      `${selectClause} FROM "${this.tableName}" ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim() +
+      ";"
+    );
   }
 
   public create(createConfig: CreateConfig<T>) {
     const insertClause = SQLQueryWriter.generateInsertClause(createConfig.data);
 
-    return `INSERT INTO "${this.tableName}" ${insertClause}`.trim();
+    return `INSERT INTO "${this.tableName}" ${insertClause}`.trim() + ";";
   }
 
   public update(updateConfig: UpdateConfig<T>) {
     const setClause = SQLQueryWriter.generateSetClause(updateConfig.data);
     const whereClause = SQLQueryWriter.generateWhereClause(updateConfig.where);
 
-    return `UPDATE "${this.tableName}" ${setClause} ${whereClause}`.trim();
+    return (
+      `UPDATE "${this.tableName}" ${setClause} ${whereClause}`.trim() + ";"
+    );
   }
 
   public delete(deleteConfig: DeleteConfig<T>) {
     const whereClause = SQLQueryWriter.generateWhereClause(deleteConfig.where);
 
-    return `DELETE FROM "${this.tableName}" ${whereClause}`.trim();
+    return `DELETE FROM "${this.tableName}" ${whereClause}`.trim() + ";";
   }
 }
