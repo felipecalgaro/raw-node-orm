@@ -18,13 +18,13 @@ export class SQLMigrationWriter {
 
     Object.entries(schema).forEach(([tableName, fields]) => {
       let primaryKeyField: { tableName: string; fieldName: string } | undefined;
-      createTableString += `CREATE TABLE "${tableName}" (`;
+      createTableString += `CREATE TABLE "${tableName}"(`;
 
       Object.entries(fields).forEach(([field, value], index, array) => {
         const isSimpleValue = typeof value === "string";
 
         if (isSimpleValue) {
-          createTableString += `"${field}" ${value}${
+          createTableString += `"${field}" ${value} NOT NULL${
             index < array.length - 1 ? ", " : ""
           }`;
         } else {
@@ -40,9 +40,9 @@ export class SQLMigrationWriter {
             primaryKeyField = { fieldName: field, tableName };
           }
 
-          createTableString += `"${field}" ${value.type} ${
-            value.nullable ? "" : "NOT NULL"
-          } ${value.defaultValue ? `DEFAULT ${value.defaultValue}` : ""}${
+          createTableString += `"${field}" ${value.type}${
+            value.nullable ? "" : " NOT NULL"
+          }${value.defaultValue ? ` DEFAULT ${value.defaultValue}` : ""}${
             index < array.length - 1 ? ", " : ""
           }`;
         }
@@ -55,13 +55,17 @@ export class SQLMigrationWriter {
     });
 
     foreignKeyFields.forEach((field) => {
-      createTableString += `ALTER TABLE "${field.tableName}" ADD CONSTRAINT "${
+      const foreignKeyConstraint = `${field.tableName}_${field.fieldName}_FK`;
+
+      createTableString += `ALTER TABLE "${
         field.tableName
-      }_${field.fieldName}_FK" FOREIGN KEY ("${field.fieldName}") REFERENCES "${
-        field.reference.tableName
-      }"("${field.reference.fieldName}")${
-        field.onDelete ? ` ON DELETE ${field.onDelete}` : ""
-      } ${field.onUpdate ? ` ON UPDATE ${field.onUpdate}` : ""}; `;
+      }" ADD CONSTRAINT "${foreignKeyConstraint}" FOREIGN KEY ("${
+        field.fieldName
+      }") REFERENCES "${field.reference.tableName}"("${
+        field.reference.fieldName
+      }")${field.onDelete ? ` ON DELETE ${field.onDelete}` : ""}${
+        field.onUpdate ? ` ON UPDATE ${field.onUpdate}` : ""
+      }; `;
     });
 
     return createTableString;
