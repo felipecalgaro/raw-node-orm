@@ -28,15 +28,20 @@ export class SQLMigrationWriter {
             index < array.length - 1 ? ", " : ""
           }`;
         } else {
-          if (value.foreignKey) {
+          if (value.foreignKeyOptions) {
             foreignKeyFields.push({
               fieldName: field,
               tableName,
-              reference: value.reference!,
-              onDelete: value.onDelete,
-              onUpdate: value.onUpdate,
+              reference: {
+                fieldName: value.foreignKeyOptions.fieldReference,
+                tableName: value.foreignKeyOptions.tableReference,
+              },
+              onDelete: value.foreignKeyOptions.onDelete,
+              onUpdate: value.foreignKeyOptions.onUpdate,
             });
-          } else if (value.primaryKey) {
+          }
+
+          if (value.primaryKey) {
             primaryKeyField = { fieldName: field, tableName };
           }
 
@@ -51,7 +56,7 @@ export class SQLMigrationWriter {
       if (primaryKeyField) {
         createTableString += `, CONSTRAINT "${primaryKeyField.tableName}_PK" PRIMARY KEY ("${primaryKeyField.fieldName}")`;
       }
-      createTableString += "); ";
+      createTableString += ");";
     });
 
     foreignKeyFields.forEach((field) => {
@@ -65,7 +70,7 @@ export class SQLMigrationWriter {
         field.reference.fieldName
       }")${field.onDelete ? ` ON DELETE ${field.onDelete}` : ""}${
         field.onUpdate ? ` ON UPDATE ${field.onUpdate}` : ""
-      }; `;
+      };`;
     });
 
     return createTableString;

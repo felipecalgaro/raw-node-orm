@@ -13,12 +13,11 @@ export type FieldOptions = {
   primaryKey?: boolean;
   defaultValue?: string | number | boolean;
   type: DatabaseTypes;
-  foreignKey?: boolean;
-  reference?: {
-    tableName: string;
-    fieldName: string;
+  foreignKeyOptions?: {
+    tableReference: string;
+    fieldReference: string;
+    onDelete?: EventTrigger;
+    onUpdate?: EventTrigger;
   };
-  onDelete?: EventTrigger;
-  onUpdate?: EventTrigger;
   nullable?: boolean;
 };
