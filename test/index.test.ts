@@ -86,7 +86,7 @@ describe("queries", () => {
 
     assert.strictEqual(
       query,
-      `INSERT INTO "users" ("name", "age") VALUES ('john', '20');`
+      `INSERT INTO "users"("name", "age") VALUES ('john', '20');`
     );
   });
 
@@ -134,8 +134,12 @@ describe("migrations", () => {
   test("create tables correctly", () => {
     const schema = new Schema();
 
-    schema.add({
+    schema.define({
       User: {
+        id: {
+          type: "VARCHAR",
+          primaryKey: true,
+        },
         name: "VARCHAR",
         age: "INT",
       },
@@ -145,15 +149,55 @@ describe("migrations", () => {
       },
     });
 
-    schema.add({
+    schema.define({
       Test: {
         hello: "FLOAT",
       },
     });
 
+    const expectedResult = `CREATE TABLE "User"("id" VARCHAR NOT NULL, "name" VARCHAR NOT NULL, "age" INT NOT NULL, CONSTRAINT "User_PK" PRIMARY KEY ("id"));CREATE TABLE "Post"("title" VARCHAR NOT NULL, "created_at" TIMESTAMP NOT NULL);CREATE TABLE "Test"("hello" FLOAT NOT NULL);`;
+
     assert.strictEqual(
       SQLMigrationWriter.generateCreateTableClause(schema.get()).trim(),
-      `CREATE TABLE "User" ("name" VARCHAR, "age" INT); CREATE TABLE "Post" ("title" VARCHAR, "created_at" TIMESTAMP); CREATE TABLE "Test" ("hello" FLOAT);`
+      expectedResult
+    );
+  });
+
+  test("create tables with relations correctly", () => {
+    const schema = new Schema();
+
+    schema.define({
+      User: {
+        id: {
+          type: "VARCHAR",
+          primaryKey: true,
+        },
+        name: "VARCHAR",
+        age: "INT",
+      },
+      Post: {
+        title: "VARCHAR",
+        created_at: {
+          type: "TIMESTAMP",
+          nullable: true,
+        },
+        authorId: {
+          type: "VARCHAR",
+          foreignKeyOptions: {
+            fieldReference: "id",
+            tableReference: "User",
+            onDelete: "CASCADE",
+            onUpdate: "CASCADE",
+          },
+        },
+      },
+    });
+
+    const expectedResult = `CREATE TABLE "User"("id" VARCHAR NOT NULL, "name" VARCHAR NOT NULL, "age" INT NOT NULL, CONSTRAINT "User_PK" PRIMARY KEY ("id"));CREATE TABLE "Post"("title" VARCHAR NOT NULL, "created_at" TIMESTAMP, "authorId" VARCHAR NOT NULL);ALTER TABLE "Post" ADD CONSTRAINT "Post_authorId_FK" FOREIGN KEY ("authorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;`;
+
+    assert.strictEqual(
+      SQLMigrationWriter.generateCreateTableClause(schema.get()).trim(),
+      expectedResult
     );
   });
 });
