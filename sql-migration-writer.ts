@@ -11,26 +11,32 @@ type ForeignKeyFieldData = {
   onUpdate?: string;
 };
 
+type UniqueFieldData = {
+  tableName: string;
+  fieldName: string;
+};
+
 export class SQLMigrationWriter {
   static generateCreateTableClause(schema: RawSchema) {
     let createTableString = "";
-    let foreignKeyFields: ForeignKeyFieldData[] = [];
+    const foreignKeyFields: ForeignKeyFieldData[] = [];
+    const uniqueFields: UniqueFieldData[] = [];
 
     Object.entries(schema).forEach(([tableName, fields]) => {
       let primaryKeyField: { tableName: string; fieldName: string } | undefined;
       createTableString += `CREATE TABLE "${tableName}"(`;
 
-      Object.entries(fields).forEach(([field, value], index, array) => {
+      Object.entries(fields).forEach(([fieldName, value], index, array) => {
         const isSimpleValue = typeof value === "string";
 
         if (isSimpleValue) {
-          createTableString += `"${field}" ${value} NOT NULL${
+          createTableString += `"${fieldName}" ${value} NOT NULL${
             index < array.length - 1 ? ", " : ""
           }`;
         } else {
           if (value.foreignKeyOptions) {
             foreignKeyFields.push({
-              fieldName: field,
+              fieldName,
               tableName,
               reference: {
                 fieldName: value.foreignKeyOptions.fieldReference,
@@ -42,10 +48,17 @@ export class SQLMigrationWriter {
           }
 
           if (value.primaryKey) {
-            primaryKeyField = { fieldName: field, tableName };
+            primaryKeyField = { fieldName, tableName };
           }
 
-          createTableString += `"${field}" ${value.type}${
+          if (value.unique) {
+            uniqueFields.push({
+              fieldName,
+              tableName,
+            });
+          }
+
+          createTableString += `"${fieldName}" ${value.type}${
             value.nullable ? "" : " NOT NULL"
           }${value.defaultValue ? ` DEFAULT ${value.defaultValue}` : ""}${
             index < array.length - 1 ? ", " : ""
@@ -71,6 +84,12 @@ export class SQLMigrationWriter {
       }")${field.onDelete ? ` ON DELETE ${field.onDelete}` : ""}${
         field.onUpdate ? ` ON UPDATE ${field.onUpdate}` : ""
       };`;
+    });
+
+    uniqueFields.forEach((field) => {
+      const uniqueFieldConstraint = `${field.tableName}_${field.fieldName}_key`;
+
+      createTableString += `CREATE UNIQUE INDEX "${uniqueFieldConstraint}" ON "${field.tableName}"("${field.fieldName}");`;
     });
 
     return createTableString;

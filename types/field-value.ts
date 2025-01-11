@@ -20,4 +20,5 @@ export type FieldOptions = {
     onUpdate?: EventTrigger;
   };
   nullable?: boolean;
+  unique?: boolean;
 };

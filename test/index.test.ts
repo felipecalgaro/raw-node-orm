@@ -144,7 +144,10 @@ describe("migrations", () => {
         age: "INT",
       },
       Post: {
-        title: "VARCHAR",
+        title: {
+          type: "VARCHAR",
+          unique: true,
+        },
         created_at: "TIMESTAMP",
       },
     });
@@ -155,7 +158,7 @@ describe("migrations", () => {
       },
     });
 
-    const expectedResult = `CREATE TABLE "User"("id" VARCHAR NOT NULL, "name" VARCHAR NOT NULL, "age" INT NOT NULL, CONSTRAINT "User_PK" PRIMARY KEY ("id"));CREATE TABLE "Post"("title" VARCHAR NOT NULL, "created_at" TIMESTAMP NOT NULL);CREATE TABLE "Test"("hello" FLOAT NOT NULL);`;
+    const expectedResult = `CREATE TABLE "User"("id" VARCHAR NOT NULL, "name" VARCHAR NOT NULL, "age" INT NOT NULL, CONSTRAINT "User_PK" PRIMARY KEY ("id"));CREATE TABLE "Post"("title" VARCHAR NOT NULL, "created_at" TIMESTAMP NOT NULL);CREATE TABLE "Test"("hello" FLOAT NOT NULL);CREATE UNIQUE INDEX "Post_title_key" ON "Post"("title");`;
 
     assert.strictEqual(
       SQLMigrationWriter.generateCreateTableClause(schema.get()).trim(),
