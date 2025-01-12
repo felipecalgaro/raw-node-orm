@@ -39,7 +39,9 @@ export class FileGenerator {
           if (typeof value == "string") {
             fileContent += `  ${field}: ${TYPES_MAPPER[value]}\n`;
           } else {
-            fileContent += `  ${field}: ${TYPES_MAPPER[value.type]}\n`;
+            fileContent += `  ${field}${value.nullable ? "?" : ""}: ${
+              TYPES_MAPPER[value.type]
+            }\n`;
           }
         });
 
