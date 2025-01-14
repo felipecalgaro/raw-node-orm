@@ -1,7 +1,7 @@
 import test, { describe } from "node:test";
 import assert from "node:assert";
 import { Table } from "../table";
-import { Raw } from "../raw";
+import Raw from "../raw";
 import { Schema } from "../schema";
 import { SQLMigrationWriter } from "../sql-migration-writer";
 
@@ -123,11 +123,9 @@ describe("queries", () => {
 });
 
 describe("migrations", () => {
-  const raw = new Raw();
-
   test("cannot migrate without schema", () => {
     assert.throws(() => {
-      raw.migrate();
+      new Raw.Migrator().migrate();
     });
   });
 

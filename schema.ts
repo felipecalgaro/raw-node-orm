@@ -1,5 +1,5 @@
 import { RawSchema } from "./raw";
-import { FileGenerator } from "./file-generator";
+import FileGenerator from "./file-generator";
 
 export class Schema {
   constructor(private _schema: RawSchema = {}) {}

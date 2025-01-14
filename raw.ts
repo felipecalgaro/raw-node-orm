@@ -1,42 +1,42 @@
-import { DatabaseTypes } from "./mapper";
 import { Schema } from "./schema";
-import { SQLWriter } from "./sqlWriter";
 import { Table } from "./table";
+import { DatabaseTypes, FieldOptions } from "./types/field-value";
 
 export type RawSchema = {
-  [schemaName: string]: {
-    [field: string]: DatabaseTypes;
+  [tableName: string]: {
+    [field: string]: DatabaseTypes | FieldOptions;
   };
 };
 
-export class Raw {
-  private _schema: RawSchema = {};
+export default class Raw {
+  static Migrator = class {
+    private _schema = new Schema();
 
-  public table<T extends Record<string, unknown> = Record<string, unknown>>(
-    tableName: string
-  ) {
-    const table = Object.keys(this._schema).find((name) => name === tableName);
-    if (!table) throw new Error("Cannot find table.");
+    public defineSchema(schema: RawSchema) {
+      this._schema.define(schema);
+    }
 
-    return new Table<T>(tableName);
-  }
+    public migrate() {
+      const schema = this._schema.get();
+      if (Object.keys(schema).length === 0)
+        throw new Error("No schema was provided.");
 
-  public addSchema(schema: RawSchema) {
-    this._schema = Object.assign(this._schema, schema);
-  }
+      this._schema.migrate();
 
-  public migrate() {
-    if (Object.keys(this._schema).length === 0)
-      throw new Error("No schema was provided.");
+      console.log("🎉 Migration SQL code successfully generated.");
+    }
+  };
 
-    Schema.generate(this._schema);
+  static Client = class {
+    private _tables: RawSchema = {};
 
-    const migrateSQLString = `${SQLWriter.generateDropTableClause(
-      Object.keys(this._schema)
-    ).trim()} ${SQLWriter.generateCreateTableClause(this._schema).trim()}`;
+    public table<T extends Record<string, unknown> = Record<string, unknown>>(
+      tableName: string
+    ) {
+      const tableExists = Object.keys(this._tables).includes(tableName);
+      if (!tableExists) throw new Error("Cannot find table.");
 
-    this._schema = {};
-
-    return migrateSQLString;
-  }
+      return new Table<T>(tableName);
+    }
+  };
 }
