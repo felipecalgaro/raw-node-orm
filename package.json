@@ -4,7 +4,9 @@
   "description": "",
   "scripts": {
     "test": "tsx watch test/index.test.ts",
-    "docker:up": "docker compose -f test/docker-compose.yml up"
+    "docker:up": "docker compose -f test/docker-compose.yml up",
+    "migration:generate": "tsx -e \"import FileGenerator from './file-generator'; FileGenerator.generateSchemaDefinitionFile()\"",
+    "migration:up": "tsx schema-definition.ts"
   },
   "keywords": [],
   "author": "",

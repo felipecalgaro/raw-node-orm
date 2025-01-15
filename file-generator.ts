@@ -3,7 +3,7 @@ import { RawSchema } from "./raw";
 import { TYPES_MAPPER } from "./mapper";
 import { SQLMigrationWriter } from "./sql-migration-writer";
 
-export class FileGenerator {
+export default class FileGenerator {
   private _schema: RawSchema;
 
   private _generateDirectories() {
@@ -50,7 +50,7 @@ export class FileGenerator {
       }
     );
 
-    fs.writeFile("generated/types/schema.ts", fileContent, (err) => {
+    fs.writeFile("generated/types/schema-data.ts", fileContent, (err) => {
       if (err) throw err;
     });
   }
@@ -63,8 +63,23 @@ export class FileGenerator {
       .split(";")
       .join(";\n\n");
 
-    fs.writeFile("generated/migrations/schema.sql", fileContent, (err) => {
+    fs.writeFile(
+      `generated/migrations/${Date.now()}.sql`,
+      fileContent,
+      (err) => {
+        if (err) throw err;
+      }
+    );
+  }
+
+  static generateSchemaDefinitionFile() {
+    const pathToRaw = "./raw";
+
+    const fileContent = `import Raw from "${pathToRaw}";\n\nconst migrator = new Raw.Migrator();\n\n// Define your schema here\nmigrator.defineSchema({\n  User: {\n    name: {\n      type: "VARCHAR",\n      nullable: true\n    }\n  },\n  Post: {\n    title: "VARCHAR"\n  }\n});\n\nmigrator.migrate();`;
+
+    fs.writeFile("schema-definition.ts", fileContent, (err) => {
       if (err) throw err;
+      console.log("🎉 Database schema is ready to be defined.");
     });
   }
 }
