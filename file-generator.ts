@@ -31,9 +31,12 @@ export default class FileGenerator {
 
     Object.entries(this._schema).forEach(
       ([tableName, columns], index, array) => {
-        fileContent += `export type ${`${tableName
+        const tableType = `${tableName
           .charAt(0)
-          .toUpperCase()}${tableName.slice(1)}Data`} = {\n`;
+          .toUpperCase()}${tableName.slice(1)}`;
+        fileContent += `export type ${tableType}Data = {\n`;
+
+        const tablesReferenced: string[] = [];
 
         Object.entries(columns).forEach(([field, value]) => {
           if (typeof value == "string") {
@@ -42,10 +45,26 @@ export default class FileGenerator {
             fileContent += `  ${field}${value.nullable ? "?" : ""}: ${
               TYPES_MAPPER[value.type]
             }\n`;
+
+            if (value.foreignKeyOptions) {
+              tablesReferenced.push(value.foreignKeyOptions.tableReference);
+            }
           }
         });
 
+        if (tablesReferenced.length > 0) {
+          fileContent += `}\n\nexport type ${tableType}Relations = {\n`;
+
+          tablesReferenced.forEach((table) => {
+            const referencedTableType = `${table
+              .charAt(0)
+              .toUpperCase()}${table.slice(1)}Data`;
+            fileContent += `  ${table.toLowerCase()}?: ${referencedTableType}\n`;
+          });
+        }
+
         fileContent += "}\n";
+
         if (index < array.length - 1) fileContent += "\n";
       }
     );
