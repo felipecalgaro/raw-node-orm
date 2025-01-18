@@ -17,5 +17,6 @@ export class Schema {
 
     fileGenerator.generateSQLFile();
     fileGenerator.generateTypesFile();
+    fileGenerator.generateRelationsMapperFile();
   }
 }

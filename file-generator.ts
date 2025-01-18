@@ -2,9 +2,11 @@ import fs from "node:fs";
 import { RawSchema } from "./raw";
 import { TYPES_MAPPER } from "./mapper";
 import { SQLMigrationWriter } from "./sql-migration-writer";
+import { RelationsMapper } from "./table";
 
 export default class FileGenerator {
   private _schema: RawSchema;
+  private _relationsMapper: RelationsMapper = [];
 
   private _generateDirectories() {
     if (!fs.existsSync("generated")) {
@@ -17,6 +19,10 @@ export default class FileGenerator {
 
     if (!fs.existsSync("generated/migrations")) {
       fs.mkdirSync("generated/migrations");
+    }
+
+    if (!fs.existsSync("generated/mappers")) {
+      fs.mkdirSync("generated/mappers");
     }
   }
 
@@ -48,6 +54,12 @@ export default class FileGenerator {
 
             if (value.foreignKeyOptions) {
               tablesReferenced.push(value.foreignKeyOptions.tableReference);
+              this._relationsMapper.push({
+                tableName,
+                fieldName: field,
+                fieldReference: value.foreignKeyOptions.fieldReference,
+                tableReference: value.foreignKeyOptions.tableReference,
+              });
             }
           }
         });
@@ -99,6 +111,33 @@ export default class FileGenerator {
     fs.writeFile("schema-definition.ts", fileContent, (err) => {
       if (err) throw err;
       console.log("🎉 Database schema is ready to be defined.");
+    });
+  }
+
+  public generateRelationsMapperFile() {
+    if (!this._relationsMapper) {
+      return;
+    }
+
+    const fileContent = this._relationsMapper.reduce(
+      (
+        acc,
+        { fieldName, fieldReference, tableName, tableReference },
+        index,
+        array
+      ) => {
+        return (
+          acc +
+          `  {\n    tableName: "${tableName}",\n    fieldName: "${fieldName}",\n    fieldReference: "${fieldReference}",\n    tableReference: "${tableReference}",\n  },\n${
+            index === array.length - 1 ? "] as const;" : ""
+          }`
+        );
+      },
+      "export const RELATIONS_MAPPER = [\n"
+    );
+
+    fs.writeFile("generated/mappers/relations.ts", fileContent, (err) => {
+      if (err) throw err;
     });
   }
 }
