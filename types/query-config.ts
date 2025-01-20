@@ -10,10 +10,19 @@ export type OrderBy<Table extends Record<string, unknown>> = {
   [k in keyof Table]?: "ASC" | "DESC";
 };
 
-export type FindConfig<Table extends Record<string, unknown>> = {
+export type Include<Relations extends Record<string, Record<string, unknown>>> =
+  {
+    [k in keyof Relations]?: boolean | Select<Relations[k]>;
+  };
+
+export type FindConfig<
+  Table extends Record<string, unknown>,
+  TableRelations extends Record<string, Record<string, unknown>>
+> = {
   select?: Select<Table>;
   where?: Where<Table>;
   orderBy?: OrderBy<Table>;
+  include?: Include<TableRelations>;
   limit?: number;
   offset?: number;
 };
