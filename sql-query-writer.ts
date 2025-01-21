@@ -1,17 +1,71 @@
-import { OrderBy, Select, Where } from "./types/queryConfig";
+import { RelationsMapper } from "./table";
+import { Include, OrderBy, Select, Where } from "./types/query-config";
+
+function writeFieldsOfSelectClause(
+  selectConfig: Select<Record<string, unknown>>,
+  tableName?: string
+) {
+  return Object.entries(selectConfig).reduce(
+    (acc, [field, value], index, array) => {
+      return (
+        acc +
+        `${value ? `${tableName ? `"${tableName}".` : ""}"${field}"` : ""}${
+          array[index + 1]?.[1] ? ", " : ""
+        }`
+      );
+    },
+    ""
+  );
+}
 
 export class SQLQueryWriter {
-  static generateSelectClause(
-    select: Select<Record<string, unknown>> | undefined
+  static generateSelectWithoutJoinClause(
+    select: Select<Record<string, unknown>> | undefined,
+    tableName: string
   ) {
-    if (!select || Object.keys(select).length === 0) return "SELECT *";
+    if (!select || Object.keys(select).length === 0)
+      return `SELECT * FROM "${tableName}"`;
 
-    let selectString = "SELECT ";
+    return `SELECT ${writeFieldsOfSelectClause(select)} FROM "${tableName}"`;
+  }
 
-    Object.entries(select).forEach(([field, value], index, array) => {
-      selectString += `${value ? `"${field}"` : ""}${
-        array[index + 1]?.[1] ? ", " : ""
-      }`;
+  static generateSelectWithJoinClause(
+    select: Select<Record<string, unknown>> | undefined,
+    include: Include<Record<string, Record<string, unknown>>>,
+    tableName: string,
+    relations: RelationsMapper
+  ) {
+    let selectString = "";
+
+    if (!select || Object.keys(select).length === 0) {
+      selectString += `SELECT "${tableName}".*`;
+    } else {
+      selectString += `SELECT ${writeFieldsOfSelectClause(select, tableName)}`;
+    }
+
+    Object.entries(include).forEach(([referencedTableName, value]) => {
+      if (value) {
+        if (typeof value === "boolean") {
+          selectString += `, "${referencedTableName}".*`;
+        } else if (Object.keys(value).length !== 0) {
+          selectString += `, ${writeFieldsOfSelectClause(
+            value,
+            referencedTableName
+          )}`;
+        }
+      }
+
+      const relation = relations.find(
+        (relation) =>
+          relation.tableName === tableName &&
+          relation.tableReference === referencedTableName
+      );
+
+      if (!relation) {
+        throw new Error("Could not establish relationship between tables.");
+      }
+
+      selectString += ` FROM "${tableName}" LEFT JOIN "${referencedTableName}" ON "${tableName}"."${relation.fieldName}" = "${referencedTableName}"."${relation.fieldReference}"`;
     });
 
     return selectString;

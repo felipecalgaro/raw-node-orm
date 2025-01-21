@@ -1,12 +1,26 @@
 import test, { describe } from "node:test";
 import assert from "node:assert";
-import { Table } from "../table";
+import { RelationsMapper, Table } from "../table";
 import Raw from "../raw";
 import { Schema } from "../schema";
 import { SQLMigrationWriter } from "../sql-migration-writer";
 
 describe("queries", () => {
-  const users = new Table("users");
+  const userRelations: RelationsMapper = [
+    {
+      tableName: "users",
+      fieldName: "carId",
+      tableReference: "cars",
+      fieldReference: "id",
+    },
+    {
+      tableName: "users",
+      fieldName: "groupId",
+      tableReference: "groups",
+      fieldReference: "id",
+    },
+  ];
+  const users = new Table("users", userRelations);
 
   test("generates correct query without any config", () => {
     const query = users.find();
@@ -24,6 +38,29 @@ describe("queries", () => {
     });
 
     assert.strictEqual(query, `SELECT "id", "name" FROM "users";`);
+  });
+
+  test("generates correct query with JOIN", () => {
+    const query = users.find({
+      include: {
+        cars: {
+          color: true,
+        },
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      `SELECT "users".*, "cars"."color" FROM "users" LEFT JOIN "cars" ON "users"."carId" = "cars"."id";`
+    );
+  });
+
+  test("cannot generate JOIN query with wrong relation data", () => {
+    assert.throws(() => users.find({ include: { bikes: true } }));
+  });
+
+  test("cannot generate JOIN query with no relation data", () => {
+    assert.throws(() => new Table("posts").find({ include: { likes: true } }));
   });
 
   test("generates correct query with WHERE", () => {
