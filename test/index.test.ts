@@ -238,4 +238,66 @@ describe("migrations", () => {
       expectedResult
     );
   });
+
+  test("cannot create table with wrong relation data", () => {
+    const schema = new Schema();
+
+    assert.throws(() =>
+      schema.define({
+        User: {
+          id: {
+            type: "VARCHAR",
+            primaryKey: true,
+          },
+          name: "VARCHAR",
+          age: "INT",
+        },
+        Post: {
+          title: "VARCHAR",
+          created_at: {
+            type: "TIMESTAMP",
+            nullable: true,
+          },
+          authorId: {
+            type: "VARCHAR",
+            foreignKeyOptions: {
+              fieldReference: "id",
+              tableReference: "WRONG_TABLE",
+              onDelete: "CASCADE",
+              onUpdate: "CASCADE",
+            },
+          },
+        },
+      })
+    );
+
+    assert.throws(() =>
+      schema.define({
+        User: {
+          id: {
+            type: "VARCHAR",
+            primaryKey: true,
+          },
+          name: "VARCHAR",
+          age: "INT",
+        },
+        Post: {
+          title: "VARCHAR",
+          created_at: {
+            type: "TIMESTAMP",
+            nullable: true,
+          },
+          authorId: {
+            type: "VARCHAR",
+            foreignKeyOptions: {
+              fieldReference: "WRONG_FIELD",
+              tableReference: "User",
+              onDelete: "CASCADE",
+              onUpdate: "CASCADE",
+            },
+          },
+        },
+      })
+    );
+  });
 });
