@@ -54,7 +54,11 @@ export class SQLQueryWriter {
           )}`;
         }
       }
+    });
 
+    selectString += ` FROM "${tableName}"`;
+
+    Object.keys(include).forEach((referencedTableName) => {
       const relation = relations.find(
         (relation) =>
           relation.tableName === tableName &&
@@ -65,7 +69,7 @@ export class SQLQueryWriter {
         throw new Error("Could not establish relationship between tables.");
       }
 
-      selectString += ` FROM "${tableName}" LEFT JOIN "${referencedTableName}" ON "${tableName}"."${relation.fieldName}" = "${referencedTableName}"."${relation.fieldReference}"`;
+      selectString += ` LEFT JOIN "${referencedTableName}" ON "${tableName}"."${relation.fieldName}" = "${referencedTableName}"."${relation.fieldReference}"`;
     });
 
     return selectString;

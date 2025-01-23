@@ -55,6 +55,20 @@ describe("queries", () => {
     );
   });
 
+  test("generates correct query with multiple JOINS", () => {
+    const query = users.find({
+      include: {
+        cars: true,
+        groups: true,
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      `SELECT "users".*, "cars".*, "groups".* FROM "users" LEFT JOIN "cars" ON "users"."carId" = "cars"."id" LEFT JOIN "groups" ON "users"."groupId" = "groups"."id";`
+    );
+  });
+
   test("cannot generate JOIN query with wrong relation data", () => {
     assert.throws(() => users.find({ include: { bikes: true } }));
   });
