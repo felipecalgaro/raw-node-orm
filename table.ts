@@ -15,7 +15,7 @@ export type RelationsMapper = {
 
 export class Table<
   Table extends Record<string, unknown> = Record<string, unknown>,
-  TableRelations extends Record<string, Record<string, unknown>> = Record<
+  Relations extends Record<string, Record<string, unknown>> = Record<
     string,
     Record<string, unknown>
   >
@@ -25,7 +25,7 @@ export class Table<
     private _relationsMapped?: RelationsMapper
   ) {}
 
-  public find(findConfig?: FindConfig<Table, TableRelations>) {
+  public find(findConfig?: FindConfig<Table, Relations>) {
     if (
       findConfig?.include &&
       (!this._relationsMapped || this._relationsMapped.length === 0)
@@ -74,8 +74,8 @@ export class Table<
     );
   }
 
-  public delete(deleteConfig: DeleteConfig<Table>) {
-    const whereClause = SQLQueryWriter.generateWhereClause(deleteConfig.where);
+  public delete(deleteConfig?: DeleteConfig<Table>) {
+    const whereClause = SQLQueryWriter.generateWhereClause(deleteConfig?.where);
 
     return `DELETE FROM "${this._tableName}" ${whereClause}`.trim() + ";";
   }
