@@ -171,6 +171,31 @@ describe("queries", () => {
       `DELETE FROM "users" WHERE "name" = 'john' AND "age" = '24';`
     );
   });
+
+  test("generates correct query with COUNT", () => {
+    const query = users.count({
+      by: "name",
+    });
+
+    assert.strictEqual(query, `SELECT COUNT("name") FROM "users";`);
+  });
+
+  test("generates correct query with COUNT and DISTINCT", () => {
+    const query = users.count({
+      by: {
+        field: "name",
+        distinct: true,
+      },
+      where: {
+        name: "john",
+      },
+    });
+
+    assert.strictEqual(
+      query,
+      `SELECT COUNT(DISTINCT "name") FROM "users" WHERE "name" = 'john';`
+    );
+  });
 });
 
 describe("migrations", () => {

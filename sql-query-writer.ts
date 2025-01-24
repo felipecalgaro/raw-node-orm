@@ -1,5 +1,5 @@
 import { RelationsMapper } from "./table";
-import { Include, OrderBy, Select, Where } from "./types/query-config";
+import { By, Include, OrderBy, Select, Where } from "./types/query-config";
 
 function writeFieldsOfSelectClause(
   selectConfig: Select<Record<string, unknown>>,
@@ -147,5 +147,22 @@ export class SQLQueryWriter {
     });
 
     return setString;
+  }
+
+  static generateCountClause(by: By<Record<string, unknown>> | undefined) {
+    let countString = "SELECT COUNT(";
+
+    if (!by) {
+      countString += "*)";
+      return countString;
+    }
+
+    if (typeof by === "string") {
+      countString += `"${by}")`;
+      return countString;
+    }
+
+    countString += `${by.distinct ? "DISTINCT" : ""} "${by.field}")`;
+    return countString;
   }
 }

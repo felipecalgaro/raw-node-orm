@@ -1,5 +1,7 @@
 import { SQLQueryWriter } from "./sql-query-writer";
 import {
+  By,
+  CountConfig,
   CreateConfig,
   DeleteConfig,
   FindConfig,
@@ -78,5 +80,16 @@ export class Table<
     const whereClause = SQLQueryWriter.generateWhereClause(deleteConfig?.where);
 
     return `DELETE FROM "${this._tableName}" ${whereClause}`.trim() + ";";
+  }
+
+  public count(countConfig?: CountConfig<Table>) {
+    const countClause = SQLQueryWriter.generateCountClause(
+      countConfig?.by as By<Record<string, unknown>> | undefined
+    );
+    const whereClause = SQLQueryWriter.generateWhereClause(countConfig?.where);
+
+    return (
+      `${countClause} FROM "${this._tableName}" ${whereClause}`.trim() + ";"
+    );
   }
 }
