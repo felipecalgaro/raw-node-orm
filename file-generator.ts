@@ -46,9 +46,9 @@ export default class FileGenerator {
 
         Object.entries(columns).forEach(([field, value]) => {
           if (typeof value == "string") {
-            fileContent += `  ${field}: ${TYPES_MAPPER[value]}\n`;
+            fileContent += `  "${field}": ${TYPES_MAPPER[value]}\n`;
           } else {
-            fileContent += `  ${field}${value.nullable ? "?" : ""}: ${
+            fileContent += `  "${field}"${value.nullable ? "?" : ""}: ${
               TYPES_MAPPER[value.type]
             }\n`;
 
@@ -71,7 +71,7 @@ export default class FileGenerator {
             const referencedTableType = `${table
               .charAt(0)
               .toUpperCase()}${table.slice(1)}Data`;
-            fileContent += `  ${table.toLowerCase()}?: ${referencedTableType}\n`;
+            fileContent += `  "${table}"?: ${referencedTableType}\n`;
           });
         }
 
@@ -110,12 +110,14 @@ export default class FileGenerator {
 
     fs.writeFile("schema-definition.ts", fileContent, (err) => {
       if (err) throw err;
-      console.log("🎉 Database schema is ready to be defined.");
+      console.log(
+        "🎉 Database schema is ready to be defined at ./schema-definition.ts."
+      );
     });
   }
 
   public generateRelationsMapperFile() {
-    if (!this._relationsMapper) {
+    if (this._relationsMapper.length === 0) {
       return;
     }
 
