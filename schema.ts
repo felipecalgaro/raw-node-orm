@@ -48,11 +48,18 @@ export class Schema {
     return this._schema;
   }
 
-  public migrate() {
+  public async migrate(runMigration: (filename: string) => Promise<void>) {
     const fileGenerator = new FileGenerator(this._schema);
 
-    fileGenerator.generateSQLFile();
+    const migrationFilename = String(Date.now());
+
+    fileGenerator.generateSQLFile(migrationFilename);
+
+    await runMigration(migrationFilename);
+    console.log("🎉 Migration successfully applied!");
+
     fileGenerator.generateTypesFile();
     fileGenerator.generateRelationsMapperFile();
+    console.log("🎉 Types and mappers files successfully generated!");
   }
 }

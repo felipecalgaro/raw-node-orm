@@ -86,7 +86,7 @@ export default class FileGenerator {
     });
   }
 
-  public generateSQLFile() {
+  public generateSQLFile(filename: string) {
     const fileContent = SQLMigrationWriter.generateCreateTableClause(
       this._schema
     )
@@ -94,19 +94,13 @@ export default class FileGenerator {
       .split(";")
       .join(";\n\n");
 
-    fs.writeFile(
-      `generated/migrations/${Date.now()}.sql`,
-      fileContent,
-      (err) => {
-        if (err) throw err;
-      }
-    );
+    fs.writeFileSync(`generated/migrations/${filename}.sql`, fileContent);
   }
 
   static generateSchemaDefinitionFile() {
-    const pathToRaw = "./raw";
+    const pathToRaw = "./lib/raw";
 
-    const fileContent = `import Raw from "${pathToRaw}";\n\nconst migrator = new Raw.Migrator();\n\n// Define your schema here\nmigrator.defineSchema({\n  User: {\n    name: {\n      type: "VARCHAR",\n      nullable: true\n    }\n  },\n  Post: {\n    title: "VARCHAR"\n  }\n});\n\nmigrator.migrate();`;
+    const fileContent = `import { raw } from "${pathToRaw}";\n\nraw.Migrator().then((migrator) => {\n  // Define your schema here\n  migrator.defineSchema({\n    User: {\n      name: {\n        type: "VARCHAR",\n        nullable: true\n      }\n    },\n    Post: {\n      title: "VARCHAR"\n    }\n  });\n\n  migrator.migrate();\n});`;
 
     fs.writeFile("schema-definition.ts", fileContent, (err) => {
       if (err) throw err;

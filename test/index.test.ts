@@ -1,11 +1,11 @@
 import test, { describe } from "node:test";
 import assert from "node:assert";
 import { RelationsMapper, Table } from "../table";
-import Raw from "../raw";
 import { Schema } from "../schema";
 import { SQLMigrationWriter } from "../sql-migration-writer";
+import { Migrator } from "../migrator";
 
-describe("queries", () => {
+describe("queries", async () => {
   const userRelations: RelationsMapper = [
     {
       tableName: "users",
@@ -20,16 +20,16 @@ describe("queries", () => {
       fieldReference: "id",
     },
   ];
-  const users = new Table("users", userRelations);
+  const users = new Table("users", userRelations, async (query) => query);
 
-  test("generates correct query without any config", () => {
-    const query = users.find();
+  test("generates correct query without any config", async () => {
+    const query = await users.find();
 
     assert.strictEqual(query, `SELECT * FROM "users";`);
   });
 
-  test("generates correct query with SELECT", () => {
-    const query = users.find({
+  test("generates correct query with SELECT", async () => {
+    const query = await users.find({
       select: {
         id: true,
         name: true,
@@ -40,8 +40,8 @@ describe("queries", () => {
     assert.strictEqual(query, `SELECT "id", "name" FROM "users";`);
   });
 
-  test("generates correct query with JOIN", () => {
-    const query = users.find({
+  test("generates correct query with JOIN", async () => {
+    const query = await users.find({
       include: {
         cars: {
           color: true,
@@ -55,8 +55,8 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with multiple JOINS", () => {
-    const query = users.find({
+  test("generates correct query with multiple JOINS", async () => {
+    const query = await users.find({
       include: {
         cars: true,
         groups: true,
@@ -69,16 +69,20 @@ describe("queries", () => {
     );
   });
 
-  test("cannot generate JOIN query with wrong relation data", () => {
-    assert.throws(() => users.find({ include: { bikes: true } }));
+  test("cannot generate JOIN query with wrong relation data", async () => {
+    assert.rejects(async () => await users.find({ include: { bikes: true } }));
   });
 
-  test("cannot generate JOIN query with no relation data", () => {
-    assert.throws(() => new Table("posts").find({ include: { likes: true } }));
+  test("cannot generate JOIN query with no relation data", async () => {
+    assert.rejects(async () =>
+      new Table("posts", undefined, async (query) => query).find({
+        include: { likes: true },
+      })
+    );
   });
 
-  test("generates correct query with WHERE", () => {
-    const query = users.find({
+  test("generates correct query with WHERE", async () => {
+    const query = await users.find({
       where: {
         id: "1",
         name: "john",
@@ -91,8 +95,8 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with SELECT and WHERE", () => {
-    const query = users.find({
+  test("generates correct query with SELECT and WHERE", async () => {
+    const query = await users.find({
       select: { name: true, age: true, id: false },
       where: { id: "1", name: "john" },
     });
@@ -103,8 +107,8 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with SELECT, WHERE and ORDER BY", () => {
-    const query = users.find({
+  test("generates correct query with SELECT, WHERE and ORDER BY", async () => {
+    const query = await users.find({
       select: { name: true, age: true, id: false },
       where: { id: "1", name: "john" },
       orderBy: {
@@ -118,8 +122,8 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with LIMIT and OFFSET", () => {
-    const query = users.find({
+  test("generates correct query with LIMIT and OFFSET", async () => {
+    const query = await users.find({
       limit: 10,
       offset: 2,
     });
@@ -127,8 +131,8 @@ describe("queries", () => {
     assert(query, `SELECT * FROM "users" LIMIT 10 OFFSET 2;`);
   });
 
-  test("generates correct query with INSERT", () => {
-    const query = users.create({
+  test("generates correct query with INSERT", async () => {
+    const query = await users.create({
       data: {
         name: "john",
         age: 20,
@@ -141,8 +145,8 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with UPDATE", () => {
-    const query = users.update({
+  test("generates correct query with UPDATE", async () => {
+    const query = await users.update({
       data: {
         name: "john",
         age: 24,
@@ -158,8 +162,8 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with DELETE", () => {
-    const query = users.delete({
+  test("generates correct query with DELETE", async () => {
+    const query = await users.delete({
       where: {
         name: "john",
         age: 24,
@@ -172,16 +176,16 @@ describe("queries", () => {
     );
   });
 
-  test("generates correct query with COUNT", () => {
-    const query = users.count({
+  test("generates correct query with COUNT", async () => {
+    const query = await users.count({
       by: "name",
     });
 
     assert.strictEqual(query, `SELECT COUNT("name") FROM "users";`);
   });
 
-  test("generates correct query with COUNT and DISTINCT", () => {
-    const query = users.count({
+  test("generates correct query with COUNT and DISTINCT", async () => {
+    const query = await users.count({
       by: {
         field: "name",
         distinct: true,
@@ -198,11 +202,13 @@ describe("queries", () => {
   });
 });
 
-describe("migrations", () => {
-  test("cannot migrate without schema", () => {
-    assert.throws(() => {
-      new Raw.Migrator().migrate();
-    });
+describe("migrations", async () => {
+  test("cannot migrate without schema", async () => {
+    assert.rejects(
+      new Migrator(async () => {
+        return;
+      }).migrate()
+    );
   });
 
   test("create tables correctly", () => {

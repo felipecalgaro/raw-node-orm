@@ -24,13 +24,14 @@ export class Table<
 > {
   constructor(
     private _tableName: string,
-    private _relationsMapped?: RelationsMapper
+    private _relationsMapper: RelationsMapper | undefined,
+    private _runQuery: (query: string) => Promise<unknown>
   ) {}
 
-  public find(findConfig?: FindConfig<Table, Relations>) {
+  public async find(findConfig?: FindConfig<Table, Relations>) {
     if (
       findConfig?.include &&
-      (!this._relationsMapped || this._relationsMapped.length === 0)
+      (!this._relationsMapper || this._relationsMapper.length === 0)
     ) {
       throw new Error(`Please provide data about the table's relationships.`);
     }
@@ -40,7 +41,7 @@ export class Table<
           findConfig.select,
           findConfig.include,
           this._tableName,
-          this._relationsMapped!
+          this._relationsMapper!
         )
       : SQLQueryWriter.generateSelectWithoutJoinClause(
           findConfig?.select,
@@ -55,41 +56,50 @@ export class Table<
       findConfig?.offset
     );
 
-    return (
+    const query =
       `${selectClause} ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim() +
-      ";"
-    );
+      ";";
+
+    return await this._runQuery(query);
   }
 
-  public create(createConfig: CreateConfig<Table>) {
+  public async create(createConfig: CreateConfig<Table>) {
     const insertClause = SQLQueryWriter.generateInsertClause(createConfig.data);
 
-    return `INSERT INTO "${this._tableName}"${insertClause}`.trim() + ";";
+    const query =
+      `INSERT INTO "${this._tableName}"${insertClause}`.trim() + ";";
+
+    return await this._runQuery(query);
   }
 
-  public update(updateConfig: UpdateConfig<Table>) {
+  public async update(updateConfig: UpdateConfig<Table>) {
     const setClause = SQLQueryWriter.generateSetClause(updateConfig.data);
     const whereClause = SQLQueryWriter.generateWhereClause(updateConfig.where);
 
-    return (
-      `UPDATE "${this._tableName}" ${setClause} ${whereClause}`.trim() + ";"
-    );
+    const query =
+      `UPDATE "${this._tableName}" ${setClause} ${whereClause}`.trim() + ";";
+
+    return await this._runQuery(query);
   }
 
-  public delete(deleteConfig?: DeleteConfig<Table>) {
+  public async delete(deleteConfig?: DeleteConfig<Table>) {
     const whereClause = SQLQueryWriter.generateWhereClause(deleteConfig?.where);
 
-    return `DELETE FROM "${this._tableName}" ${whereClause}`.trim() + ";";
+    const query =
+      `DELETE FROM "${this._tableName}" ${whereClause}`.trim() + ";";
+
+    return await this._runQuery(query);
   }
 
-  public count(countConfig?: CountConfig<Table>) {
+  public async count(countConfig?: CountConfig<Table>) {
     const countClause = SQLQueryWriter.generateCountClause(
       countConfig?.by as By<Record<string, unknown>> | undefined
     );
     const whereClause = SQLQueryWriter.generateWhereClause(countConfig?.where);
 
-    return (
-      `${countClause} FROM "${this._tableName}" ${whereClause}`.trim() + ";"
-    );
+    const query =
+      `${countClause} FROM "${this._tableName}" ${whereClause}`.trim() + ";";
+
+    return await this._runQuery(query);
   }
 }

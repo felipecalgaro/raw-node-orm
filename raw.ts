@@ -1,5 +1,7 @@
-import { Schema } from "./schema";
-import { Table } from "./table";
+import { Client } from "./client";
+import { PostgreSQLDriver } from "./drivers/postgresql";
+import { Migrator } from "./migrator";
+import { DBMS, DriverConfig } from "./types/driver";
 import { DatabaseTypes, FieldOptions } from "./types/field-value";
 
 export type RawSchema = {
@@ -8,35 +10,53 @@ export type RawSchema = {
   };
 };
 
+type Config = {
+  DBMS: DBMS;
+  connection: DriverConfig;
+};
+
 export default class Raw {
-  static Migrator = class {
-    private _schema = new Schema();
+  private _runQuery: ((query: string) => Promise<unknown>) | undefined;
+  private _runMigration: ((filename: string) => Promise<void>) | undefined;
+  private _migrator = Migrator;
+  private _client = Client;
 
-    public defineSchema(schema: RawSchema) {
-      this._schema.define(schema);
+  constructor(private _config: Config) {}
+
+  private async _init() {
+    switch (this._config.DBMS) {
+      case "PostgreSQL":
+        const driver = new PostgreSQLDriver();
+
+        const { database, host, password, port, user } =
+          this._config.connection;
+
+        await driver.init({
+          database,
+          host,
+          password,
+          port,
+          user,
+        });
+
+        this._runQuery = driver.runQuery;
+        this._runMigration = driver.runMigration;
+    }
+  }
+
+  public async Migrator() {
+    if (!this._runMigration) {
+      await this._init();
     }
 
-    public migrate() {
-      const schema = this._schema.get();
-      if (Object.keys(schema).length === 0)
-        throw new Error("No schema was provided.");
+    return new this._migrator(this._runMigration!);
+  }
 
-      this._schema.migrate();
-
-      console.log("🎉 Migration SQL code successfully generated.");
+  public async Client() {
+    if (!this._runQuery) {
+      await this._init();
     }
-  };
 
-  static Client = class {
-    private _tables: RawSchema = {};
-
-    public table<T extends Record<string, unknown> = Record<string, unknown>>(
-      tableName: string
-    ) {
-      const tableExists = Object.keys(this._tables).includes(tableName);
-      if (!tableExists) throw new Error("Cannot find table.");
-
-      return new Table<T>(tableName);
-    }
-  };
+    return new this._client(this._runQuery!);
+  }
 }
