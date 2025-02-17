@@ -20,7 +20,11 @@ describe("queries", async () => {
       fieldReference: "id",
     },
   ];
-  const users = new Table("users", userRelations, async (query) => query);
+  const users = new Table(
+    "users",
+    userRelations,
+    async <Return>(query: string) => query as Return
+  );
 
   test("generates correct query without any config", async () => {
     const query = await users.find();
@@ -75,7 +79,11 @@ describe("queries", async () => {
 
   test("cannot generate JOIN query with no relation data", async () => {
     assert.rejects(async () =>
-      new Table("posts", undefined, async (query) => query).find({
+      new Table(
+        "posts",
+        undefined,
+        async <Return>(query: string) => query as Return
+      ).find({
         include: { likes: true },
       })
     );

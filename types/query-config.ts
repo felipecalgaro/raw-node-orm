@@ -51,3 +51,29 @@ export type CountConfig<Table extends Record<string, unknown>> = {
   by?: By<Table>;
   where?: Where<Table>;
 };
+
+export type FindReturn<
+  Table extends Record<string, unknown>,
+  Relations extends Record<string, Record<string, unknown>>,
+  Select,
+  Include
+> = (Select extends Record<string, boolean>
+  ? { [k in keyof Select]: k extends keyof Table ? Table[k] : never }
+  : Table) &
+  (Include extends Record<string, Record<string, unknown>>
+    ? {
+        [k in keyof Include]: {
+          [l in keyof Include[k]]: k extends keyof Relations
+            ? l extends keyof Relations[k]
+              ? Relations[k][l]
+              : never
+            : never;
+        };
+      }
+    : Include extends Record<string, boolean>
+    ? Relations
+    : void);
+
+export type CountReturn = {
+  count: string;
+};

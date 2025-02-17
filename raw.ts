@@ -1,7 +1,12 @@
 import { Client } from "./client";
 import { PostgreSQLDriver } from "./drivers/postgresql";
 import { Migrator } from "./migrator";
-import { DBMS, DriverConfig } from "./types/driver";
+import {
+  DBMS,
+  DriverConfig,
+  RunMigrationFunction,
+  RunQueryFunction,
+} from "./types/driver";
 import { DatabaseTypes, FieldOptions } from "./types/field-value";
 
 export type RawSchema = {
@@ -16,8 +21,8 @@ type Config = {
 };
 
 export default class Raw {
-  private _runQuery: ((query: string) => Promise<unknown>) | undefined;
-  private _runMigration: ((filename: string) => Promise<void>) | undefined;
+  private _runQuery: RunQueryFunction | undefined;
+  private _runMigration: RunMigrationFunction | undefined;
   private _migrator = Migrator;
   private _client = Client;
 

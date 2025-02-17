@@ -1,10 +1,13 @@
 import { SQLQueryWriter } from "./sql-query-writer";
+import { RunQueryFunction } from "./types/driver";
 import {
   By,
   CountConfig,
+  CountReturn,
   CreateConfig,
   DeleteConfig,
   FindConfig,
+  FindReturn,
   UpdateConfig,
 } from "./types/query-config";
 
@@ -25,10 +28,12 @@ export class Table<
   constructor(
     private _tableName: string,
     private _relationsMapper: RelationsMapper | undefined,
-    private _runQuery: (query: string) => Promise<unknown>
+    private _runQuery: RunQueryFunction
   ) {}
 
-  public async find(findConfig?: FindConfig<Table, Relations>) {
+  public async find<Config extends FindConfig<Table, Relations>>(
+    findConfig?: Config
+  ) {
     if (
       findConfig?.include &&
       (!this._relationsMapper || this._relationsMapper.length === 0)
@@ -60,7 +65,18 @@ export class Table<
       `${selectClause} ${whereClause} ${orderByClause} ${limitClause} ${offsetClause}`.trim() +
       ";";
 
-    return await this._runQuery(query);
+    return await this._runQuery<
+      FindReturn<
+        Table,
+        Relations,
+        Config["select"] extends Record<string, unknown>
+          ? Config["select"]
+          : undefined,
+        Config["include"] extends Record<string, unknown>
+          ? Config["include"]
+          : undefined
+      >
+    >(query);
   }
 
   public async create(createConfig: CreateConfig<Table>) {
@@ -100,6 +116,6 @@ export class Table<
     const query =
       `${countClause} FROM "${this._tableName}" ${whereClause}`.trim() + ";";
 
-    return await this._runQuery(query);
+    return await this._runQuery<CountReturn>(query);
   }
 }

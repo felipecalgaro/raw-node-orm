@@ -8,9 +8,17 @@ export type DriverConfig = {
   port: number;
 };
 
+export type RunQueryFunction = <
+  QueryResult extends Record<string, unknown> = Record<string, unknown>
+>(
+  query: string
+) => Promise<QueryResult[]>;
+
+export type RunMigrationFunction = (filename: string) => Promise<void>;
+
 export abstract class Driver {
   protected abstract _client: unknown | undefined;
   abstract init(config: DriverConfig): Promise<void>;
-  abstract runQuery(query: string): Promise<unknown>;
-  abstract runMigration(filename: string): Promise<void>;
+  abstract runQuery: RunQueryFunction;
+  abstract runMigration: RunMigrationFunction;
 }

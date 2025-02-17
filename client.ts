@@ -1,7 +1,8 @@
 import { RelationsMapper, Table } from "./table";
+import { RunQueryFunction } from "./types/driver";
 
-export class Client<RunQueryType extends (arg: string) => Promise<unknown>> {
-  constructor(private _runQuery: RunQueryType) {}
+export class Client {
+  constructor(private _runQuery: RunQueryFunction) {}
 
   public table<
     Table extends Record<string, unknown> = Record<string, unknown>,

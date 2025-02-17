@@ -1,10 +1,11 @@
 import { RawSchema } from "./raw";
 import { Schema } from "./schema";
+import { RunMigrationFunction } from "./types/driver";
 
-export class Migrator<RunMigrationType extends (arg: string) => Promise<void>> {
+export class Migrator {
   private _schema = new Schema();
 
-  constructor(private _runMigration: RunMigrationType) {}
+  constructor(private _runMigration: RunMigrationFunction) {}
 
   public defineSchema(schema: RawSchema) {
     this._schema.define(schema);
