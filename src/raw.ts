@@ -15,18 +15,18 @@ export type RawSchema = {
   };
 };
 
-type Config = {
+export type RawConfig = {
   DBMS: DBMS;
   connection: DriverConfig;
 };
 
-export default class Raw {
+export class Raw {
   private _runQuery: RunQueryFunction | undefined;
   private _runMigration: RunMigrationFunction | undefined;
   private _migrator = Migrator;
   private _client = Client;
 
-  constructor(private _config: Config) {}
+  constructor(private _config: RawConfig) {}
 
   private async _init() {
     switch (this._config.DBMS) {

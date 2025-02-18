@@ -19,8 +19,8 @@ export type RelationsMapper = {
 }[];
 
 export class Table<
-  Table extends Record<string, unknown> = Record<string, unknown>,
-  Relations extends Record<string, Record<string, unknown>> = Record<
+  TableType extends Record<string, unknown> = Record<string, unknown>,
+  RelationsType extends Record<string, Record<string, unknown>> = Record<
     string,
     Record<string, unknown>
   >
@@ -31,7 +31,7 @@ export class Table<
     private _runQuery: RunQueryFunction
   ) {}
 
-  public async find<Config extends FindConfig<Table, Relations>>(
+  public async find<Config extends FindConfig<TableType, RelationsType>>(
     findConfig?: Config
   ) {
     if (
@@ -67,8 +67,8 @@ export class Table<
 
     return await this._runQuery<
       FindReturn<
-        Table,
-        Relations,
+        TableType,
+        RelationsType,
         Config["select"] extends Record<string, unknown>
           ? Config["select"]
           : undefined,
@@ -79,7 +79,7 @@ export class Table<
     >(query);
   }
 
-  public async create(createConfig: CreateConfig<Table>) {
+  public async create(createConfig: CreateConfig<TableType>) {
     const insertClause = SQLQueryWriter.generateInsertClause(createConfig.data);
 
     const query =
@@ -88,7 +88,7 @@ export class Table<
     return await this._runQuery(query);
   }
 
-  public async update(updateConfig: UpdateConfig<Table>) {
+  public async update(updateConfig: UpdateConfig<TableType>) {
     const setClause = SQLQueryWriter.generateSetClause(updateConfig.data);
     const whereClause = SQLQueryWriter.generateWhereClause(updateConfig.where);
 
@@ -98,7 +98,7 @@ export class Table<
     return await this._runQuery(query);
   }
 
-  public async delete(deleteConfig?: DeleteConfig<Table>) {
+  public async delete(deleteConfig?: DeleteConfig<TableType>) {
     const whereClause = SQLQueryWriter.generateWhereClause(deleteConfig?.where);
 
     const query =
@@ -107,7 +107,7 @@ export class Table<
     return await this._runQuery(query);
   }
 
-  public async count(countConfig?: CountConfig<Table>) {
+  public async count(countConfig?: CountConfig<TableType>) {
     const countClause = SQLQueryWriter.generateCountClause(
       countConfig?.by as By<Record<string, unknown>> | undefined
     );

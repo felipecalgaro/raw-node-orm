@@ -34,7 +34,7 @@ export class PostgreSQLDriver extends Driver {
   };
 
   public runMigration = async (filename: string) => {
-    const filePath = `./generated/migrations/${filename}.sql`;
+    const filePath = `./raw/generated/migrations/${filename}.sql`;
 
     const sql = fs.readFileSync(filePath, "utf8");
 

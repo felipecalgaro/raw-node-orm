@@ -2,7 +2,7 @@ import { TYPES_MAPPER } from "../mapper";
 
 export type DatabaseTypes = keyof typeof TYPES_MAPPER;
 
-type EventTrigger =
+export type EventTrigger =
   | "CASCADE"
   | "SET NULL"
   | "SET DEFAULT"

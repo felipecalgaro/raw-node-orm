@@ -25,7 +25,7 @@ export class Schema {
       }
 
       if (
-        !schema[field.foreignKeyOptions.tableReference][
+        !schema[field.foreignKeyOptions.tableReference]?.[
           field.foreignKeyOptions.fieldReference
         ]
       ) {

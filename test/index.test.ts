@@ -1,9 +1,9 @@
 import test, { describe } from "node:test";
 import assert from "node:assert";
-import { RelationsMapper, Table } from "../table";
-import { Schema } from "../schema";
-import { SQLMigrationWriter } from "../sql-migration-writer";
-import { Migrator } from "../migrator";
+import { RelationsMapper, Table } from "../src/table";
+import { Schema } from "../src/schema";
+import { SQLMigrationWriter } from "../src/sql-migration-writer";
+import { Migrator } from "../src/migrator";
 
 describe("queries", async () => {
   const userRelations: RelationsMapper = [

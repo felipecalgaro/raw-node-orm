@@ -9,20 +9,24 @@ export default class FileGenerator {
   private _relationsMapper: RelationsMapper = [];
 
   private _generateDirectories() {
-    if (!fs.existsSync("generated")) {
-      fs.mkdirSync("generated");
+    if (!fs.existsSync("raw")) {
+      fs.mkdirSync("raw");
     }
 
-    if (!fs.existsSync("generated/types")) {
-      fs.mkdirSync("generated/types");
+    if (!fs.existsSync("raw/generated")) {
+      fs.mkdirSync("raw/generated");
     }
 
-    if (!fs.existsSync("generated/migrations")) {
-      fs.mkdirSync("generated/migrations");
+    if (!fs.existsSync("raw/generated/types")) {
+      fs.mkdirSync("raw/generated/types");
     }
 
-    if (!fs.existsSync("generated/mappers")) {
-      fs.mkdirSync("generated/mappers");
+    if (!fs.existsSync("raw/generated/migrations")) {
+      fs.mkdirSync("raw/generated/migrations");
+    }
+
+    if (!fs.existsSync("raw/generated/mappers")) {
+      fs.mkdirSync("raw/generated/mappers");
     }
   }
 
@@ -81,7 +85,7 @@ export default class FileGenerator {
       }
     );
 
-    fs.writeFile("generated/types/schema-data.ts", fileContent, (err) => {
+    fs.writeFile("raw/generated/types/schema-data.ts", fileContent, (err) => {
       if (err) throw err;
     });
   }
@@ -94,15 +98,23 @@ export default class FileGenerator {
       .split(";")
       .join(";\n\n");
 
-    fs.writeFileSync(`generated/migrations/${filename}.sql`, fileContent);
+    fs.writeFileSync(`raw/generated/migrations/${filename}.sql`, fileContent);
   }
 
-  static generateSchemaDefinitionFile() {
-    const pathToRaw = "./lib/raw";
+  static generateSchemaDefinitionFile(path?: string) {
+    const fileContent = `import { raw } from "${
+      path || "../src/lib/raw"
+    }";\n\nraw.Migrator().then((migrator) => {\n  // Define your schema here\n  migrator.defineSchema({\n    User: {\n      name: {\n        type: "VARCHAR",\n        nullable: true\n      }\n    },\n    Post: {\n      title: "VARCHAR"\n    }\n  });\n\n  migrator.migrate();\n});`;
 
-    const fileContent = `import { raw } from "${pathToRaw}";\n\nraw.Migrator().then((migrator) => {\n  // Define your schema here\n  migrator.defineSchema({\n    User: {\n      name: {\n        type: "VARCHAR",\n        nullable: true\n      }\n    },\n    Post: {\n      title: "VARCHAR"\n    }\n  });\n\n  migrator.migrate();\n});`;
+    if (!fs.existsSync("raw")) {
+      fs.mkdirSync("raw");
+    }
 
-    fs.writeFile("schema-definition.ts", fileContent, (err) => {
+    if (!fs.existsSync("raw/generated")) {
+      fs.mkdirSync("raw/generated");
+    }
+
+    fs.writeFile("raw/generated/schema-definition.ts", fileContent, (err) => {
       if (err) throw err;
       console.log(
         "🎉 Database schema is ready to be defined at ./schema-definition.ts."
