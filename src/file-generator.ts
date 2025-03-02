@@ -85,9 +85,7 @@ export default class FileGenerator {
       }
     );
 
-    fs.writeFile("raw/generated/types/schema-data.ts", fileContent, (err) => {
-      if (err) throw err;
-    });
+    fs.writeFileSync("raw/generated/types/schema-data.ts", fileContent);
   }
 
   public generateSQLFile(filename: string) {
@@ -99,27 +97,6 @@ export default class FileGenerator {
       .join(";\n\n");
 
     fs.writeFileSync(`raw/generated/migrations/${filename}.sql`, fileContent);
-  }
-
-  static generateSchemaDefinitionFile(path?: string) {
-    const fileContent = `import { raw } from "${
-      path || "../src/lib/raw"
-    }";\n\nraw.Migrator().then((migrator) => {\n  // Define your schema here\n  migrator.defineSchema({\n    User: {\n      name: {\n        type: "VARCHAR",\n        nullable: true\n      }\n    },\n    Post: {\n      title: "VARCHAR"\n    }\n  });\n\n  migrator.migrate();\n});`;
-
-    if (!fs.existsSync("raw")) {
-      fs.mkdirSync("raw");
-    }
-
-    if (!fs.existsSync("raw/generated")) {
-      fs.mkdirSync("raw/generated");
-    }
-
-    fs.writeFile("raw/generated/schema-definition.ts", fileContent, (err) => {
-      if (err) throw err;
-      console.log(
-        "🎉 Database schema is ready to be defined at ./schema-definition.ts."
-      );
-    });
   }
 
   public generateRelationsMapperFile() {
@@ -144,8 +121,6 @@ export default class FileGenerator {
       "export const RELATIONS_MAPPER = [\n"
     );
 
-    fs.writeFile("generated/mappers/relations.ts", fileContent, (err) => {
-      if (err) throw err;
-    });
+    fs.writeFileSync("generated/mappers/relations.ts", fileContent);
   }
 }
