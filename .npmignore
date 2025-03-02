@@ -1,0 +1,8 @@
+/src
+/node_modules
+/test
+/generated
+/raw
+tsconfig.json
+tsup.config.ts
+todos.txt

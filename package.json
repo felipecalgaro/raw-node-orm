@@ -1,20 +1,36 @@
 {
   "name": "raw-node-orm",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.7",
+  "description": "ORM for Node.js applications",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "repository": {
+    "url": "https://github.com/felipecalgaro/raw-node-orm"
+  },
+  "bin": {
+    "raw": "cli.ts"
+  },
   "scripts": {
     "test": "tsx watch test/index.test.ts",
-    "docker:up": "docker compose -f test/docker-compose.yml up",
-    "migration:generate": "tsx -e \"import FileGenerator from './file-generator'; FileGenerator.generateSchemaDefinitionFile()\"",
-    "migration:up": "tsx schema-definition.ts"
+    "docker:up": "docker compose -f test/docker-compose.yml up -d",
+    "build": "npx tsup"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "orm",
+    "nodejs",
+    "javascript",
+    "typescript"
+  ],
+  "author": "felipecalgaro",
+  "license": "MIT",
   "devDependencies": {
     "@types/pg": "^8.11.10",
-    "pg": "^8.13.1",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "tsup": "^8.3.6"
+  },
+  "dependencies": {
+    "pg": "^8.13.3",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3"
   }
 }
