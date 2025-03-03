@@ -254,6 +254,41 @@ describe("migrations", async () => {
     );
   });
 
+  test("drop tables correctly", () => {
+    const schema = new Schema();
+
+    schema.define({
+      User: {
+        id: {
+          type: "VARCHAR",
+          primaryKey: true,
+        },
+        name: "VARCHAR",
+        age: "INT",
+      },
+      Post: {
+        title: {
+          type: "VARCHAR",
+          unique: true,
+        },
+        created_at: "TIMESTAMP",
+      },
+    });
+
+    schema.define({
+      Test: {
+        hello: "FLOAT",
+      },
+    });
+
+    const expectedResult = `DROP TABLE IF EXISTS "User", "Post", "Test" CASCADE;`;
+
+    assert.strictEqual(
+      SQLMigrationWriter.generateDropTableClause(schema.get()).trim(),
+      expectedResult
+    );
+  });
+
   test("create tables with relations correctly", () => {
     const schema = new Schema();
 

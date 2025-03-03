@@ -89,9 +89,9 @@ export default class FileGenerator {
   }
 
   public generateSQLFile(filename: string) {
-    const fileContent = SQLMigrationWriter.generateCreateTableClause(
+    const fileContent = `${SQLMigrationWriter.generateDropTableClause(
       this._schema
-    )
+    )}${SQLMigrationWriter.generateCreateTableClause(this._schema)}`
       .trim()
       .split(";")
       .join(";\n\n");

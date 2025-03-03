@@ -95,11 +95,13 @@ export class SQLMigrationWriter {
     return createTableString;
   }
 
-  static generateDropTableClause(tables: string[]) {
+  static generateDropTableClause(schema: RawSchema) {
     let dropTableString = "DROP TABLE IF EXISTS ";
 
-    tables.forEach((table, index, array) => {
-      dropTableString += `"${table}"${index < array.length - 1 ? ", " : ""}`;
+    Object.entries(schema).forEach(([tableName], index, array) => {
+      dropTableString += `"${tableName}"${
+        index < array.length - 1 ? ", " : ""
+      }`;
     });
 
     dropTableString += " CASCADE;";
