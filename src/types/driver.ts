@@ -9,10 +9,15 @@ export type DriverConfig = {
 };
 
 export type RunQueryFunction = <
-  QueryResult extends Record<string, unknown> = Record<string, unknown>
+  QueryResult extends Record<string, unknown>,
+  FinalResult extends
+    | Record<string, unknown>
+    | Record<string, unknown>[]
+    | void = QueryResult[]
 >(
-  query: string
-) => Promise<QueryResult[]>;
+  query: string,
+  formatResult: (result: QueryResult[]) => FinalResult
+) => Promise<FinalResult>;
 
 export type RunMigrationFunction = (filename: string) => Promise<void>;
 

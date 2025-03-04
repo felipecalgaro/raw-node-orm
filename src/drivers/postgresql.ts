@@ -21,8 +21,15 @@ export class PostgreSQLDriver extends Driver {
     }
   }
 
-  public runQuery = async <QueryResult extends Record<string, unknown>>(
-    sql: string
+  public runQuery = async <
+    QueryResult extends Record<string, unknown>,
+    FinalResult extends
+      | Record<string, unknown>
+      | Record<string, unknown>[]
+      | void
+  >(
+    sql: string,
+    formatResult: (result: QueryResult[]) => FinalResult
   ) => {
     if (!this._client) {
       throw new Error("Provide a connection to a database first.");
@@ -30,7 +37,7 @@ export class PostgreSQLDriver extends Driver {
 
     const result = await this._client.query<QueryResult>(sql);
 
-    return result.rows;
+    return formatResult(result.rows);
   };
 
   public runMigration = async (filename: string) => {

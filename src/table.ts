@@ -76,7 +76,7 @@ export class Table<
           ? Config["include"]
           : undefined
       >
-    >(query);
+    >(query, (result) => result);
   }
 
   public async create(createConfig: CreateConfig<TableType>) {
@@ -85,7 +85,7 @@ export class Table<
     const query =
       `INSERT INTO "${this._tableName}"${insertClause}`.trim() + ";";
 
-    return await this._runQuery(query);
+    return await this._runQuery(query, () => {});
   }
 
   public async update(updateConfig: UpdateConfig<TableType>) {
@@ -95,7 +95,7 @@ export class Table<
     const query =
       `UPDATE "${this._tableName}" ${setClause} ${whereClause}`.trim() + ";";
 
-    return await this._runQuery(query);
+    return await this._runQuery(query, () => {});
   }
 
   public async delete(deleteConfig?: DeleteConfig<TableType>) {
@@ -104,7 +104,7 @@ export class Table<
     const query =
       `DELETE FROM "${this._tableName}" ${whereClause}`.trim() + ";";
 
-    return await this._runQuery(query);
+    return await this._runQuery(query, () => {});
   }
 
   public async count(countConfig?: CountConfig<TableType>) {
@@ -116,6 +116,13 @@ export class Table<
     const query =
       `${countClause} FROM "${this._tableName}" ${whereClause}`.trim() + ";";
 
-    return await this._runQuery<CountReturn>(query);
+    return await this._runQuery<CountReturn, { count: number }>(
+      query,
+      (result) => {
+        return {
+          count: Number(result[0]!.count),
+        };
+      }
+    );
   }
 }
