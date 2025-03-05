@@ -21,27 +21,26 @@ export type RawConfig = {
 };
 
 export class Raw {
-  private _runQuery: RunQueryFunction | undefined;
-  private _runMigration: RunMigrationFunction | undefined;
-  private _migrator = Migrator;
-  private _client = Client;
+  private _runQuery: RunQueryFunction;
+  private _runMigration: RunMigrationFunction;
+  private _config: RawConfig;
 
-  constructor(private _config: RawConfig) {}
+  constructor(config: RawConfig) {
+    this._config = config;
 
-  private async _init() {
+    const { database, host, password, port, user, idleTimeoutMillis, max } =
+      config.connection;
+
     switch (this._config.DBMS) {
       case "PostgreSQL":
-        const driver = new PostgreSQLDriver();
-
-        const { database, host, password, port, user } =
-          this._config.connection;
-
-        await driver.init({
+        const driver = new PostgreSQLDriver({
           database,
           host,
           password,
           port,
           user,
+          idleTimeoutMillis,
+          max,
         });
 
         this._runQuery = driver.runQuery;
@@ -49,19 +48,11 @@ export class Raw {
     }
   }
 
-  public async Migrator() {
-    if (!this._runMigration) {
-      await this._init();
-    }
-
-    return new this._migrator(this._runMigration!);
+  get Migrator() {
+    return new Migrator(this._runMigration);
   }
 
-  public async Client() {
-    if (!this._runQuery) {
-      await this._init();
-    }
-
-    return new this._client(this._runQuery!);
+  get Client() {
+    return new Client(this._runQuery);
   }
 }

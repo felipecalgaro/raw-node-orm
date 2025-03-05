@@ -1,24 +1,10 @@
 import fs from "node:fs";
-import pg from "pg";
 import { Driver, DriverConfig } from "../types/driver";
+import { PoolClient } from "pg";
 
 export class PostgreSQLDriver extends Driver {
-  protected _client: pg.Client | undefined;
-
-  public async init(config: DriverConfig) {
-    try {
-      this._client = new pg.Client({
-        user: config.user,
-        host: config.host,
-        database: config.database,
-        password: config.password,
-        port: config.port,
-      });
-
-      await this._client.connect();
-    } catch {
-      throw new Error("Could not connect to database.");
-    }
+  constructor(config: DriverConfig) {
+    super(config);
   }
 
   public runQuery = async <
@@ -31,13 +17,21 @@ export class PostgreSQLDriver extends Driver {
     sql: string,
     formatResult: (result: QueryResult[]) => FinalResult
   ) => {
-    if (!this._client) {
-      throw new Error("Provide a connection to a database first.");
+    let client: PoolClient;
+    try {
+      client = await this._pool.connect();
+    } catch {
+      throw new Error("Error while connecting to the database.");
     }
 
-    const result = await this._client.query<QueryResult>(sql);
-
-    return formatResult(result.rows);
+    try {
+      const result = await client.query<QueryResult>(sql);
+      return formatResult(result.rows);
+    } catch {
+      throw new Error("Error while querying the database.");
+    } finally {
+      client.release();
+    }
   };
 
   public runMigration = async (filename: string) => {
@@ -45,15 +39,20 @@ export class PostgreSQLDriver extends Driver {
 
     const sql = fs.readFileSync(filePath, "utf8");
 
-    if (!this._client) {
-      throw new Error("Provide a connection to a database first.");
+    let client: PoolClient;
+    try {
+      client = await this._pool.connect();
+    } catch {
+      throw new Error("Error while connecting to the database.");
     }
 
     try {
-      await this._client.query(sql);
+      await client.query(sql);
     } catch {
       fs.unlinkSync(filePath);
-      throw new Error("Could not apply migrations.");
+      throw new Error("Error while applying migrations to the database.");
+    } finally {
+      client.release();
     }
   };
 }
