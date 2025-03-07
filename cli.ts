@@ -18,24 +18,20 @@ const options = args.slice(2).reduce((prev, curr, index, array) => {
   return prev;
 }, {} as Record<string, string>);
 
-function generateSchemaDefinitionFile(path?: string) {
-  const fileContent = `import { raw } from "${
-    path ? `../../${path}` : "../../src/lib/raw"
-  }";\n\nraw.Migrator().then((migrator) => {\n  // Define your schema here\n  migrator.defineSchema({\n    User: {\n      name: {\n        type: "VARCHAR",\n        nullable: true\n      }\n    },\n    Post: {\n      title: "VARCHAR"\n    }\n  });\n\n  migrator.migrate();\n});`;
+function generateFile({
+  content,
+  createDirectories,
+  successMessage,
+}: {
+  content: string;
+  createDirectories?: () => void;
+  successMessage: string;
+}) {
+  createDirectories?.();
 
-  if (!fs.existsSync("raw")) {
-    fs.mkdirSync("raw");
-  }
-
-  if (!fs.existsSync("raw/generated")) {
-    fs.mkdirSync("raw/generated");
-  }
-
-  fs.writeFile("raw/generated/schema-definition.ts", fileContent, (err) => {
+  fs.writeFile("raw/generated/schema-definition.ts", content, (err) => {
     if (err) throw err;
-    console.log(
-      "🎉 Database schema is ready to be defined at ./schema-definition.ts."
-    );
+    console.log(successMessage);
   });
 }
 
@@ -44,7 +40,24 @@ const scripts = {
     start: (options: Record<string, string>) => {
       const filePath = options["-f"];
 
-      generateSchemaDefinitionFile(filePath?.replace(".ts", ""));
+      const fileContent = `import { migrator } from "${
+        filePath ? `../../${filePath.replace(".ts", "")}` : "../../src/lib/raw"
+      }";\n\n// Define your schema here\nmigrator.defineSchema({\n  User: {\n    name: {\n      type: "VARCHAR",\n      nullable: true\n    }\n  },\n  Post: {\n    title: "VARCHAR"\n  }\n});\n\nmigrator.migrate();`;
+
+      generateFile({
+        content: fileContent,
+        createDirectories: () => {
+          if (!fs.existsSync("raw")) {
+            fs.mkdirSync("raw");
+          }
+
+          if (!fs.existsSync("raw/generated")) {
+            fs.mkdirSync("raw/generated");
+          }
+        },
+        successMessage:
+          "🎉 Database schema is ready to be defined at raw/generated/schema-definition.ts.",
+      });
     },
     up: () => {
       const child = spawn(
@@ -63,8 +76,27 @@ const scripts = {
   },
   help: () => {
     console.log(`Usage:
+      raw init                                       # Generate lib file
       raw migrate start [-f] [path to Raw instance]  # Generate migration file 
-      raw migrate up                                 # Apply migrations`);
+      raw migrate up                                 # Apply migrations
+      raw help                                       # Show all commands`);
+  },
+  init: () => {
+    const fileContent = `import { Raw } from "raw-node-orm";\n\n// Define the configuration for database connection here\nconst raw = new Raw({\n\n});\n\nconst client = raw.Client;\nconst migrator = raw.Migrator;\n\nexport { client, migrator };`;
+
+    generateFile({
+      content: fileContent,
+      createDirectories: () => {
+        if (!fs.existsSync("src")) {
+          fs.mkdirSync("src");
+        }
+
+        if (!fs.existsSync("src/lib")) {
+          fs.mkdirSync("src/lib");
+        }
+      },
+      successMessage: "🎉 Raw instance is ready to be used at src/lib/raw.ts",
+    });
   },
 };
 
@@ -73,10 +105,12 @@ if (command && command in scripts) {
 
   if (
     subcommand &&
-    subcommand in scriptCommand &&
-    typeof scriptCommand !== "function"
+    typeof scriptCommand !== "function" &&
+    subcommand in scriptCommand
   ) {
     scriptCommand[subcommand as keyof typeof scriptCommand](options);
+  } else if (typeof scriptCommand === "function") {
+    scriptCommand();
   } else {
     scripts.help();
   }
