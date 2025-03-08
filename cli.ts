@@ -1,62 +1,58 @@
 #!/usr/bin/env tsx
 
-import fs from "node:fs";
+import { existsSync, mkdirSync, writeFile } from "node:fs";
 import { spawn } from "child_process";
 
 const args = process.argv.slice(2);
 const command = args[0];
-const subcommand = args[1];
-const options = args.slice(2).reduce((prev, curr, index, array) => {
-  if (
-    index % 2 === 0 &&
-    typeof array[index + 1] === "string" &&
-    curr.startsWith("-")
-  ) {
-    prev[curr] = array[index + 1] as string;
-  }
 
-  return prev;
-}, {} as Record<string, string>);
-
-function generateFile({
-  content,
-  createDirectories,
-  successMessage,
-}: {
-  content: string;
-  createDirectories?: () => void;
-  successMessage: string;
-}) {
-  createDirectories?.();
-
-  fs.writeFile("raw/generated/schema-definition.ts", content, (err) => {
-    if (err) throw err;
-    console.log(successMessage);
-  });
+let subcommand: string | null;
+let optionsStartingIndex: number;
+if (!args[1]?.startsWith("-")) {
+  subcommand = args[1];
+  optionsStartingIndex = 2;
+} else {
+  subcommand = null;
+  optionsStartingIndex = 1;
 }
+
+const options = args
+  .slice(optionsStartingIndex)
+  .reduce((prev, curr, index, array) => {
+    if (
+      index % 2 === 0 &&
+      typeof array[index + 1] === "string" &&
+      curr.startsWith("-")
+    ) {
+      prev[curr] = array[index + 1];
+    }
+
+    return prev;
+  }, {} as Record<string, string>);
 
 const scripts = {
   migrate: {
     start: (options: Record<string, string>) => {
-      const filePath = options["-f"];
+      const rawInstanceFilePath = options["-f"];
 
+      const filePath = "raw/generated/schema-definition.ts";
       const fileContent = `import { migrator } from "${
-        filePath ? `../../${filePath.replace(".ts", "")}` : "../../src/lib/raw"
+        rawInstanceFilePath
+          ? `../../${rawInstanceFilePath.replace(".ts", "")}`
+          : "../../src/lib/raw"
       }";\n\n// Define your schema here\nmigrator.defineSchema({\n  User: {\n    name: {\n      type: "VARCHAR",\n      nullable: true\n    }\n  },\n  Post: {\n    title: "VARCHAR"\n  }\n});\n\nmigrator.migrate();`;
 
-      generateFile({
-        content: fileContent,
-        createDirectories: () => {
-          if (!fs.existsSync("raw")) {
-            fs.mkdirSync("raw");
-          }
+      if (!existsSync("raw")) {
+        mkdirSync("raw");
+      }
 
-          if (!fs.existsSync("raw/generated")) {
-            fs.mkdirSync("raw/generated");
-          }
-        },
-        successMessage:
-          "🎉 Database schema is ready to be defined at raw/generated/schema-definition.ts.",
+      if (!existsSync("raw/generated")) {
+        mkdirSync("raw/generated");
+      }
+
+      writeFile(filePath, fileContent, (err) => {
+        if (err) throw err;
+        console.log(`🎉 Database schema is ready to be defined at ${filePath}`);
       });
     },
     up: () => {
@@ -74,29 +70,29 @@ const scripts = {
       });
     },
   },
+  init: () => {
+    const filePath = "src/lib/raw.ts";
+    const fileContent = `import { Raw } from "raw-node-orm";\n\n// Define the configuration for database connection here\nconst raw = new Raw({\n\n});\n\nconst client = raw.Client;\nconst migrator = raw.Migrator;\n\nexport { client, migrator };`;
+
+    if (!existsSync("src")) {
+      mkdirSync("src");
+    }
+
+    if (!existsSync("src/lib")) {
+      mkdirSync("src/lib");
+    }
+
+    writeFile(filePath, fileContent, (err) => {
+      if (err) throw err;
+      console.log(`🎉 Raw instance is ready to be used at ${filePath}`);
+    });
+  },
   help: () => {
     console.log(`Usage:
       raw init                                       # Generate lib file
       raw migrate start [-f] [path to Raw instance]  # Generate migration file 
       raw migrate up                                 # Apply migrations
       raw help                                       # Show all commands`);
-  },
-  init: () => {
-    const fileContent = `import { Raw } from "raw-node-orm";\n\n// Define the configuration for database connection here\nconst raw = new Raw({\n\n});\n\nconst client = raw.Client;\nconst migrator = raw.Migrator;\n\nexport { client, migrator };`;
-
-    generateFile({
-      content: fileContent,
-      createDirectories: () => {
-        if (!fs.existsSync("src")) {
-          fs.mkdirSync("src");
-        }
-
-        if (!fs.existsSync("src/lib")) {
-          fs.mkdirSync("src/lib");
-        }
-      },
-      successMessage: "🎉 Raw instance is ready to be used at src/lib/raw.ts",
-    });
   },
 };
 

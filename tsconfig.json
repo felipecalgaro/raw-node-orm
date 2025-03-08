@@ -15,11 +15,10 @@
   },
   "include": [
     "src",
-    "cli.ts"
   ],
   "exclude": [
     "node_modules",
     "test",
     "generated"
-  ]
+  ],
 }

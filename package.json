@@ -1,6 +1,6 @@
 {
   "name": "raw-node-orm",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "ORM for Node.js applications",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -9,12 +9,12 @@
     "url": "https://github.com/felipecalgaro/raw-node-orm"
   },
   "bin": {
-    "raw": "cli.ts"
+    "raw": "cli.js"
   },
   "scripts": {
     "test": "tsx watch test/index.test.ts",
     "docker:up": "docker compose -f test/docker-compose.yml up -d",
-    "build": "npx tsup"
+    "build": "npx tsup && npx tsc cli.ts"
   },
   "keywords": [
     "orm",

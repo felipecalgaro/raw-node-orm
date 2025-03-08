@@ -2,3 +2,4 @@ node_modules
 schema-definition.ts
 dist
 raw
+cli.js
