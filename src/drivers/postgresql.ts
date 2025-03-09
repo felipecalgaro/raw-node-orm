@@ -55,4 +55,8 @@ export class PostgreSQLDriver extends Driver {
       client.release();
     }
   };
+
+  public disconnect = async () => {
+    await this._pool.end();
+  };
 }

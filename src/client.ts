@@ -1,8 +1,11 @@
 import { RelationsMapper, Table } from "./table";
-import { RunQueryFunction } from "./types/driver";
+import { DisconnectFunction, RunQueryFunction } from "./types/driver";
 
 export class Client {
-  constructor(private _runQuery: RunQueryFunction) {}
+  constructor(
+    private _runQuery: RunQueryFunction,
+    private _disconnectPool: DisconnectFunction
+  ) {}
 
   public table<
     TableType extends Record<string, unknown> = Record<string, unknown>,
@@ -16,5 +19,9 @@ export class Client {
       relations,
       this._runQuery
     );
+  }
+
+  public async disconnect() {
+    await this._disconnectPool();
   }
 }

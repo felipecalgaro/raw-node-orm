@@ -3,6 +3,7 @@ import { PostgreSQLDriver } from "./drivers/postgresql";
 import { Migrator } from "./migrator";
 import {
   DBMS,
+  Driver,
   DriverConfig,
   RunMigrationFunction,
   RunQueryFunction,
@@ -21,8 +22,7 @@ export type RawConfig = {
 };
 
 export class Raw {
-  private _runQuery: RunQueryFunction;
-  private _runMigration: RunMigrationFunction;
+  private _driver: Driver;
   private _config: RawConfig;
 
   constructor(config: RawConfig) {
@@ -33,7 +33,7 @@ export class Raw {
 
     switch (this._config.DBMS) {
       case "PostgreSQL":
-        const driver = new PostgreSQLDriver({
+        this._driver = new PostgreSQLDriver({
           database,
           host,
           password,
@@ -42,17 +42,14 @@ export class Raw {
           idleTimeoutMillis,
           max,
         });
-
-        this._runQuery = driver.runQuery;
-        this._runMigration = driver.runMigration;
     }
   }
 
   get Migrator() {
-    return new Migrator(this._runMigration);
+    return new Migrator(this._driver.runMigration);
   }
 
   get Client() {
-    return new Client(this._runQuery);
+    return new Client(this._driver.runQuery, this._driver.disconnect);
   }
 }

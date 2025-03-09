@@ -25,6 +25,8 @@ export type RunQueryFunction = <
 
 export type RunMigrationFunction = (filename: string) => Promise<void>;
 
+export type DisconnectFunction = () => Promise<void>;
+
 export abstract class Driver {
   protected _pool: Pool;
   constructor(config: DriverConfig) {
@@ -40,4 +42,5 @@ export abstract class Driver {
   }
   abstract runQuery: RunQueryFunction;
   abstract runMigration: RunMigrationFunction;
+  abstract disconnect: DisconnectFunction;
 }
